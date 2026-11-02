@@ -8,14 +8,14 @@ import threading
 from datetime import datetime
 
 # =============================================================================
-# CONFIGURACIÓN GENERAL
+# CONFIGURACIÓN GENERAL (DATOS GENÉRICOS DE PRUEBA)
 # =============================================================================
 
-RNOS_FIJO = "107909"
-CUIT_OS_PROPIO = "41763271426" 
+RNOS_FIJO = "999999"
+CUIT_OS_PROPIO = "30000000000" 
 
-# Carpeta Raíz
-BASE_DIR = r"C:\Users\Damian Gomez\Desktop\Programacion\Control integracion"
+# Carpeta Raíz (Dinámica respecto al script)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Carpetas de ENTRADA
 DIR_DATABASES = os.path.join(BASE_DIR, "Bases de datos")
@@ -23,9 +23,9 @@ DIR_HISTORICOS_DEVOK = os.path.join(DIR_DATABASES, "DEVOK Historicos")
 DIR_HISTORICOS_SUBSIDIOS = os.path.join(DIR_DATABASES, "SUBSIDIOS Historicos")
 DIR_LIBROS_IVA = os.path.join(DIR_DATABASES, "Libros IVA")
 
-FILE_PADRON_CERTIFICADOS = os.path.join(DIR_DATABASES, "Base Listado certificados disca.xlsx") 
-FILE_PADRON_AFILIADOS = os.path.join(DIR_DATABASES, "Base Padron de afiliados.xlsx")
-FILE_VALORES = os.path.join(DIR_DATABASES, "Base Valores Integracion.xlsx")
+FILE_PADRON_CERTIFICADOS = os.path.join(DIR_DATABASES, "base_certificados.xlsx") 
+FILE_PADRON_AFILIADOS = os.path.join(DIR_DATABASES, "base_afiliados.xlsx")
+FILE_VALORES = os.path.join(DIR_DATABASES, "base_valores_nomenclador.xlsx")
 
 # Carpetas de SALIDA
 DIR_OUT_ERRORES = os.path.join(BASE_DIR, "Control Errores")
