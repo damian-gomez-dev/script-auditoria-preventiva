@@ -391,4 +391,4 @@ if archivo_txt is not None:
                         )
 
                 except Exception as e:
-                    st.error(f5"❌ Error crítico en el proceso: {e}")
+                    st.error(f"❌ Error crítico en el proceso: {e}")
