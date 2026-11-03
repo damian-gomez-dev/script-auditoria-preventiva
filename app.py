@@ -381,8 +381,7 @@ if archivo_txt is not None:
                     
                     # Mostrar Logs
                     st.subheader("📋 Registro de Ejecución (Logs)")
-                    st.text_area("Detalles del proceso:", "
-".join(logs), height=250)
+                    st.text_area("Detalles del proceso:", "\n".join(logs), height=250)
 
                     # Botones de Descarga en ZIP
                     if output_files:
