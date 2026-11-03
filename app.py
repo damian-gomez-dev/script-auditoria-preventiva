@@ -100,8 +100,7 @@ if archivo_txt is not None:
                     # 1. CONTROL SSSALUD
                     # ---------------------------------------------------------
                     if modo in ["Control SSSalud (Lógica Médica)", "PROCESO COMPLETO (Todo lo anterior)"]:
-                        log_msg("
->>> [1/3] Ejecutando Control SSSalud...")
+                        log_msg(">>> [1/3] Ejecutando Control SSSalud...")
                         
                         # Padrón Certificados
                         if file_cert is not None:
@@ -220,8 +219,7 @@ if archivo_txt is not None:
                     # 2. CONTROL AFIP
                     # ---------------------------------------------------------
                     if modo in ["Control AFIP (Cruce c/Libros IVA)", "PROCESO COMPLETO (Todo lo anterior)"]:
-                        log_msg("
->>> [2/3] Ejecutando Control AFIP...")
+                        log_msg(">>> [2/3] Ejecutando Control AFIP...")
                         MAPEO_FACTURAS = {'1': '1', '2': '4', '3': '6', '5': '11', '6': '15', '7': '51', '8': '54'}
                         
                         if files_iva:
@@ -244,7 +242,7 @@ if archivo_txt is not None:
                             if dfs_iva:
                                 df_iva_raw = pd.concat(dfs_iva, ignore_index=True)
                                 df_iva = pd.DataFrame()
-                                df_iva['IVA_CUIT'] = df_iva_raw['Nro. Doc. Vendedor'].astype(str).str.replace(r'\D', '', regex=True)
+                                df_iva['IVA_CUIT'] = df_iva_raw['Nro. Doc. Vendedor'].astype(str).str.replace(r'\\D', '', regex=True)
                                 df_iva['IVA_TIPO'] = df_iva_raw['Tipo'].apply(lambda x: str(x).split('-')[0].strip().lstrip('0'))
                                 df_iva['IVA_PTO'] = df_iva_raw['Punto de Venta'].apply(lambda x: str(int(float(x))))
                                 df_iva['IVA_NUM'] = df_iva_raw['Número Desde'].apply(lambda x: str(int(float(x))))
@@ -294,8 +292,7 @@ if archivo_txt is not None:
                     # 3. CÁLCULO SUBSIDIOS
                     # ---------------------------------------------------------
                     if modo in ["Cálculo Subsidios (Económico)", "PROCESO COMPLETO (Todo lo anterior)"]:
-                        log_msg("
->>> [3/3] Ejecutando Cálculo de Subsidios...")
+                        log_msg(">>> [3/3] Ejecutando Cálculo de Subsidios...")
                         if file_val is not None:
                             try:
                                 df_val = pd.read_excel(file_val, dtype=str, engine='openpyxl')
@@ -394,4 +391,4 @@ if archivo_txt is not None:
                         )
 
                 except Exception as e:
-                    st.error(f"❌ Error crítico en el proceso: {e}")
+                    st.error(f5"❌ Error crítico en el proceso: {e}")
