@@ -11,9 +11,6 @@ import zipfile
 # =============================================================================
 # CONFIGURACIÓN GENERAL
 # =============================================================================
-RNOS_FIJO = "999999"
-CUIT_OS_PROPIO = "30000000000"
-
 COLUMNAS = [
     'Tipo_Archivo', 'Cod_OS', 'CUIL', 'Cod_Certificado', 'Venc_Certificado',
     'Periodo_Prestacion', 'CUIT_Prestador', 'Tipo_Comp', 'Tipo_Emision',
@@ -31,45 +28,56 @@ CODIGOS_CON_DEPENDENCIA = [
 
 st.set_page_config(page_title="Sistema Integración SSSalud", layout="wide")
 
-st.title(f"🏥 Sistema Integración SSSalud - RNOS: {RNOS_FIJO}")
-st.markdown("Herramienta de auditoría preventiva, control AFIP y cálculo de subsidios adaptada para Streamlit.")
+st.title("🏥 Sistema Integración SSSalud - Módulo de Auditoría Preventiva")
+st.markdown("Herramienta de control SSSalud, AFIP y cálculo de subsidios.")
 
 # =============================================================================
-# BARRA LATERAL - CONFIGURACIÓN
+# BARRA LATERAL - BASES DE DATOS E HISTÓRICOS (CRUCES)
 # =============================================================================
-st.sidebar.header("⚙️ Parámetros de Ejecución")
+st.sidebar.header("📁 Bases de Datos e Históricos (Cruces)")
+st.sidebar.markdown("Cargue aquí los archivos de referencia, padrones e históricos necesarios para las validaciones:")
 
-modo = st.sidebar.selectbox(
-    "Seleccione el modo de control:",
-    (
-        "PROCESO COMPLETO (Todo lo anterior)",
-        "Control SSSalud (Lógica Médica)",
-        "Control AFIP (Cruce c/Libros IVA)",
-        "Cálculo Subsidios (Económico)"
-    )
-)
-
-hoy = datetime.now()
-mes_def = hoy.month - 1 if hoy.month > 1 else 12
-anio_def = hoy.year if hoy.month > 1 else hoy.year - 1
-periodo_defecto = f"{anio_def}{mes_def:02d}"
-
-periodo_pres = st.sidebar.text_input("Periodo de Presentación (YYYYMM)", value=periodo_defecto)
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("📂 Carga de Archivos de Entrada")
-archivo_txt = st.sidebar.file_uploader("Archivo TXT principal (_ds.txt)", type=["txt"])
-
-# Opcionales (Bases de datos)
-st.sidebar.markdown("#### Bases de Referencia (Opcional)")
 file_cert = st.sidebar.file_uploader("Base Certificados (Excel)", type=["xlsx"])
 file_afil = st.sidebar.file_uploader("Base Afiliados (Excel)", type=["xlsx"])
 file_val = st.sidebar.file_uploader("Base Valores Nomenclador (Excel)", type=["xlsx"])
 
-st.sidebar.markdown("#### Carpetas Históricas / Libros IVA")
+st.sidebar.markdown("---")
 files_devok = st.sidebar.file_uploader("Históricos DEVOK (Múltiples CSV/TXT)", type=["csv", "txt"], accept_multiple_files=True)
 files_iva = st.sidebar.file_uploader("Libros IVA AFIP (Múltiples Excel/CSV)", type=["xlsx", "csv"], accept_multiple_files=True)
 
+# =============================================================================
+# MENÚ PRINCIPAL - ARCHIVOS DE ENTRADA Y PARÁMETROS
+# =============================================================================
+st.markdown("---")
+st.header("⚙️ Parámetros de Ejecución y Archivos de Entrada")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    rnos_ingresado = st.text_input("RNOS Institucional", value="999999", help="Número de Registro Nacional de Obras Sociales")
+    cuit_os_ingresado = st.text_input("CUIT de la Obra Social (Propio)", value="30000000000", help="CUIT propio para el armado de registros")
+
+with col2:
+    hoy = datetime.now()
+    mes_def = hoy.month - 1 if hoy.month > 1 else 12
+    anio_def = hoy.year if hoy.month > 1 else hoy.year - 1
+    periodo_defecto = f"{anio_def}{mes_def:02d}"
+    
+    periodo_pres = st.text_input("Periodo de Presentación (YYYYMM)", value=periodo_defecto)
+    modo = st.selectbox(
+        "Seleccione el modo de control:",
+        (
+            "PROCESO COMPLETO (Todo lo anterior)",
+            "Control SSSalud (Lógica Médica)",
+            "Control AFIP (Cruce c/Libros IVA)",
+            "Cálculo Subsidios (Económico)"
+        )
+    )
+
+st.markdown("### 📄 Archivo de Prestaciones")
+archivo_txt = st.file_uploader("Seleccione el archivo TXT principal de prestaciones (_ds.txt)", type=["txt"])
+
+st.markdown("---")
 
 # =============================================================================
 # LÓGICA DE PROCESAMIENTO
@@ -201,7 +209,7 @@ if archivo_txt is not None:
 
                         df_ok = df[df['Codigo_Rechazo'] == ''].copy()
                         if not df_ok.empty:
-                            name_ok = f"{RNOS_FIJO}-{periodo_pres}_DS.DEVOK"
+                            name_ok = f"{rnos_ingresado}-{periodo_pres}_DS.DEVOK"
                             buf_ok = io.StringIO()
                             df_ok[COLUMNAS].to_csv(buf_ok, sep='|', index=False, header=False, encoding='latin1')
                             output_files[name_ok] = buf_ok.getvalue()
@@ -209,7 +217,7 @@ if archivo_txt is not None:
 
                         df_err = df[df['Codigo_Rechazo'] != ''].copy()
                         if not df_err.empty:
-                            name_err = f"{RNOS_FIJO}-{periodo_pres}_DS.DEVERR"
+                            name_err = f"{rnos_ingresado}-{periodo_pres}_DS.DEVERR"
                             buf_err = io.StringIO()
                             df_err[COLUMNAS + ['Codigo_Rechazo']].to_csv(buf_err, sep='|', index=False, header=False, encoding='latin1')
                             output_files[name_err] = buf_err.getvalue()
@@ -272,7 +280,7 @@ if archivo_txt is not None:
 
                                 df_afip_err = df_merged[df_merged['Error_AFIP'] != ''].copy()
                                 if not df_afip_err.empty:
-                                    name_err = f"{RNOS_FIJO}-{periodo_pres}_DS_WS.DEVERR"
+                                    name_err = f"{rnos_ingresado}-{periodo_pres}_DS_WS.DEVERR"
                                     buf_aerr = io.StringIO()
                                     df_afip_err[COLUMNAS + ['Error_AFIP']].to_csv(buf_aerr, sep='|', index=False, header=False, encoding='latin1')
                                     output_files[name_err] = buf_aerr.getvalue()
@@ -280,7 +288,7 @@ if archivo_txt is not None:
 
                                 df_afip_ok = df_merged[df_merged['Error_AFIP'] == ''].copy()
                                 if not df_afip_ok.empty:
-                                    name_ok = f"{RNOS_FIJO}-{periodo_pres}_DS_WS.DEVOK_AFIP"
+                                    name_ok = f"{rnos_ingresado}-{periodo_pres}_DS_WS.DEVOK_AFIP"
                                     buf_aok = io.StringIO()
                                     df_afip_ok[COLUMNAS].to_csv(buf_aok, sep='|', index=False, header=False, encoding='latin1')
                                     output_files[name_ok] = buf_aok.getvalue()
@@ -328,11 +336,11 @@ if archivo_txt is not None:
 
                                 df_grouped['Str_Imp_Sol'] = df_grouped['Importe_Num'].apply(lambda x: "{:.2f}".format(x))
                                 df_grouped['Str_Imp_Sub'] = df_grouped['Monto_Subsidiable'].apply(lambda x: "{:.2f}".format(x))
-                                df_grouped['Linea'] = (CUIT_OS_PROPIO + "|" + periodo_pres + "|" + df_grouped['Cod_OS'] + "|" +
+                                df_grouped['Linea'] = (cuit_os_ingresado + "|" + periodo_pres + "|" + df_grouped['Cod_OS'] + "|" +
                                                        df_grouped['CUIL'] + "|" + df_grouped['Periodo_Prestacion'] + "|" +
                                                        df_grouped['Str_Imp_Sol'] + "|" + df_grouped['Cod_Int'] + "|" + df_grouped['Str_Imp_Sub'])
                                 
-                                name_sub = f"{RNOS_FIJO}-{periodo_pres}_DS.SUBSIDIO"
+                                name_sub = f"{rnos_ingresado}-{periodo_pres}_DS.SUBSIDIO"
                                 buf_sub = io.StringIO()
                                 df_grouped['Linea'].to_csv(buf_sub, index=False, header=False, quoting=3, escapechar=None)
                                 output_files[name_sub] = buf_sub.getvalue()
@@ -358,7 +366,7 @@ if archivo_txt is not None:
                                 df_rep = df_grouped[rep_cols].copy()
                                 df_rep.columns = ['CUIL', 'Nombre', 'Convenio', 'Periodo', 'Codigo', 'Importe Solicitado', 'Importe Subsidiado', 'Diferencia']
                                 
-                                name_rep = f"{RNOS_FIJO}-{periodo_pres}_Control_Diferencias.csv"
+                                name_rep = f"{rnos_ingresado}-{periodo_pres}_Control_Diferencias.csv"
                                 buf_rep = io.StringIO()
                                 df_rep.to_csv(buf_rep, index=False, sep=';', float_format='%.2f', encoding='utf-8-sig')
                                 output_files[name_rep] = buf_rep.getvalue()
@@ -373,7 +381,8 @@ if archivo_txt is not None:
                     
                     # Mostrar Logs
                     st.subheader("📋 Registro de Ejecución (Logs)")
-                    st.text_area("Detalles del proceso:", "\n".join(logs), height=250)
+                    st.text_area("Detalles del proceso:", "
+".join(logs), height=250)
 
                     # Botones de Descarga en ZIP
                     if output_files:
