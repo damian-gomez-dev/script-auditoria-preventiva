@@ -297,8 +297,8 @@ st.markdown("""
     <div class="hero-badge">Mecanismo de Integración</div>
     <h1 class="hero-title">🏥 Sistema de Auditoría FTP Preventiva SSSalud</h1>
     <p class="hero-subtitle">
-        Validación integral pre-presentación: detecta inconsistencias (<b>DS.DEVERR</b>),
-        verifique comprobantes contra Libros IVA (<b>AFIP WS</b>) y proyecte topes de reintegro (<b>DS.SUBSIDIO</b>) en segundos.
+        Validación integral pre-presentación: detecta inconsistencias,
+        verifique comprobantes contra Libros IVA y proyecte topes de reintegro en segundos.
     </p>
 </div>
 """, unsafe_allow_html=True)
@@ -325,7 +325,7 @@ with st.container():
         )
     with col2:
         cuit_os_ingresado = st.text_input(
-            "🆔 CUIT Obra Social (Propio)",
+            "🆔 CUIT (Propio)",
             value="30000000000",
             help="CUIT institucional utilizado para el armado de líneas de subsidio"
         )
@@ -347,17 +347,17 @@ with st.container():
             "🎯 Alcance del Control:",
             (
                 "PROCESO COMPLETO (Todo lo anterior)",
-                "Control SSSalud (Lógica Médica)",
-                "Control AFIP (Cruce c/Libros IVA)",
-                "Cálculo Subsidios (Económico)"
+                "Control SSSalud (DEV.ERR)",
+                "Control AFIP (DS_WS.DEVERR)",
+                "Cálculo Subsidios (DS.SUBSIDIO + Reporte)"
             ),
             help="Elija si desea correr los 3 módulos en simultáneo o un módulo específico."
         )
         descripciones_modo = {
             "PROCESO COMPLETO (Todo lo anterior)": "Ejecuta Control Médico + Cruce AFIP + Proyección de Subsidios.",
-            "Control SSSalud (Lógica Médica)": "Genera archivos DEVOK y DEVERR según reglas de negocio SSSalud.",
-            "Control AFIP (Cruce c/Libros IVA)": "Cruza facturas del lote contra los Libros IVA Digitales cargados.",
-            "Cálculo Subsidios (Económico)": "Calcula topes según Nomenclador y genera DS.SUBSIDIO + Reporte."
+            "Control SSSalud (DEV.ERR)": "Genera archivos DEVOK y DEVERR según reglas de negocio SSSalud.",
+            "Control AFIP (DS_WS.DEVERR)": "Cruza facturas del lote contra los Libros IVA Digitales cargados.",
+            "Cálculo Subsidios (DS.SUBSIDIO + Reporte)": "Calcula topes según Nomenclador y genera DS.SUBSIDIO + Reporte."
         }
         st.caption(f"ℹ️ {descripciones_modo.get(modo, '')}")
 
