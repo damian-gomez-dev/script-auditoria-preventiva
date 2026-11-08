@@ -294,10 +294,10 @@ with st.sidebar:
 # =============================================================================
 st.markdown("""
 <div class="hero-banner">
-    <div class="hero-badge">🛡️ Ley 24.901 · Mecanismo de Integración</div>
-    <h1 class="hero-title">🏥 Sistema de Auditoría Preventiva SSSalud</h1>
+    <div class="hero-badge">Mecanismo de Integración</div>
+    <h1 class="hero-title">🏥 Sistema de Auditoría FTP Preventiva SSSalud</h1>
     <p class="hero-subtitle">
-        Validación integral pre-presentación: detecte inconsistencias médicas (<b>DS.DEVERR</b>),
+        Validación integral pre-presentación: detecta inconsistencias (<b>DS.DEVERR</b>),
         verifique comprobantes contra Libros IVA (<b>AFIP WS</b>) y proyecte topes de reintegro (<b>DS.SUBSIDIO</b>) en segundos.
     </p>
 </div>
