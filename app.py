@@ -797,7 +797,7 @@ if archivo_txt is not None:
                 except Exception as e:
                     st.error(f"❌ Error crítico en el proceso: {e}")
 else:
-    st.info("👆 **Para comenzar:** Cargue el archivo principal de prestaciones (`_ds.txt`) en el **Paso 2** y configure las bases de cruce necesarias en el panel izquierdo.")
+    st.info("👆 **Para comenzar:** Indique sus datos y cargue el archivo principal de prestaciones (`_ds.txt`), opcionalmente puede añadir las bases de datos en el panel izquierdo para profundizar el control.")
 
 
 # =============================================================================
