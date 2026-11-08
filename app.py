@@ -15,7 +15,7 @@ st.set_page_config(
     page_title="Auditoría Preventiva SSSalud | Mecanismo de Integración",
     page_icon="🛡️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 COLUMNAS = [
@@ -146,48 +146,6 @@ st.markdown("""
         margin: 0;
     }
 
-    /* Semáforo de Insumos (Pills) */
-    .status-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
-        gap: 0.65rem;
-        margin-top: 0.5rem;
-        margin-bottom: 1.25rem;
-    }
-    .status-pill {
-        border-radius: 10px;
-        padding: 0.65rem 0.85rem;
-        font-size: 0.82rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.2rem;
-        border: 1px solid transparent;
-    }
-    .pill-ok {
-        background: rgba(16, 185, 129, 0.1);
-        border-color: rgba(16, 185, 129, 0.35);
-    }
-    .pill-warn {
-        background: rgba(245, 158, 11, 0.1);
-        border-color: rgba(245, 158, 11, 0.35);
-    }
-    .pill-req {
-        background: rgba(239, 68, 68, 0.1);
-        border-color: rgba(239, 68, 68, 0.35);
-    }
-    .pill-neutral {
-        background: rgba(148, 163, 184, 0.1);
-        border-color: rgba(148, 163, 184, 0.25);
-    }
-    .pill-title {
-        font-weight: 700;
-        font-size: 0.84rem;
-    }
-    .pill-sub {
-        font-size: 0.75rem;
-        opacity: 0.82;
-    }
-
     /* Tarjetas de KPI de Resultados */
     .kpi-card {
         background: rgba(128, 128, 128, 0.05);
@@ -285,9 +243,9 @@ def desglosar_errores(series_errores: pd.Series, catalogo: dict, sep: str = '-')
 # =============================================================================
 with st.sidebar:
     st.markdown("## 🗂️ Centro de Bases de Datos")
-    st.caption("Cargue aquí los padrones, históricos y tablas de referencia para los cruces de auditoría.")
+    st.caption("Despliegue las secciones que necesite para cargar padrones, históricos y tablas de cruce.")
 
-    with st.expander("🏥 1. Control Médico SSSalud", expanded=True):
+    with st.expander("🏥 1. Control Médico SSSalud", expanded=False):
         file_cert = st.file_uploader(
             "🪪 Base Certificados (Excel)",
             type=["xlsx"],
@@ -300,7 +258,7 @@ with st.sidebar:
             help="Archivos DEVOK de períodos anteriores para detectar duplicados (-411) y validar apoyos/transporte (-408, -415)."
         )
 
-    with st.expander("🧾 2. Control Fiscal AFIP", expanded=True):
+    with st.expander("🧾 2. Control Fiscal AFIP", expanded=False):
         files_iva = st.file_uploader(
             "📑 Libros IVA AFIP (Excel/CSV)",
             type=["xlsx", "csv"],
@@ -308,7 +266,7 @@ with st.sidebar:
             help="Exportaciones de Mis Comprobantes / Libro IVA Digital para validar existencia (100), fecha (101) e importe (110)."
         )
 
-    with st.expander("💰 3. Subsidios y Padrón", expanded=True):
+    with st.expander("💰 3. Subsidios y Padrón", expanded=False):
         file_val = st.file_uploader(
             "📊 Valores Nomenclador (Excel)",
             type=["xlsx"],
@@ -404,105 +362,20 @@ with st.container():
         st.caption(f"ℹ️ {descripciones_modo.get(modo, '')}")
 
 # =============================================================================
-# PASO 2: CARGA DEL ARCHIVO PRINCIPAL Y SEMÁFORO DE INSUMOS
+# PASO 2: CARGA DEL ARCHIVO PRINCIPAL DE PRESTACIONES
 # =============================================================================
 st.markdown("""
-<div class="step-header" style="margin-top: 0.5rem;">
+<div class="step-header" style="margin-top: 0.75rem;">
     <span class="step-number">2</span>
-    <h3 class="step-title">Archivo Principal de Prestaciones y Estado de Insumos</h3>
+    <h3 class="step-title">Archivo Principal de Prestaciones (_ds.txt)</h3>
 </div>
 """, unsafe_allow_html=True)
 
-col_up, col_check = st.columns([1.25, 1.75])
-
-with col_up:
-    archivo_txt = st.file_uploader(
-        "📄 Seleccione el archivo TXT principal de prestaciones (_ds.txt)",
-        type=["txt"],
-        help="Archivo separado por pipes (|) con las 19 columnas reglamentarias de SSSalud."
-    )
-
-with col_check:
-    usa_sss = modo in ["Control SSSalud (Lógica Médica)", "PROCESO COMPLETO (Todo lo anterior)"]
-    usa_afip = modo in ["Control AFIP (Cruce c/Libros IVA)", "PROCESO COMPLETO (Todo lo anterior)"]
-    usa_sub = modo in ["Cálculo Subsidios (Económico)", "PROCESO COMPLETO (Todo lo anterior)"]
-
-    def render_pill(titulo: str, cargado: bool, detalle_ok: str, detalle_faltante: str, requerido: bool, activo: bool) -> str:
-        if not activo:
-            clase = "pill-neutral"
-            icono = "⚪"
-            sub = "No requerido en este modo"
-        elif cargado:
-            clase = "pill-ok"
-            icono = "✅"
-            sub = detalle_ok
-        elif requerido:
-            clase = "pill-req"
-            icono = "🔴"
-            sub = detalle_faltante
-        else:
-            clase = "pill-warn"
-            icono = "⚠️"
-            sub = detalle_faltante
-        return f"""
-        <div class="status-pill {clase}">
-            <span class="pill-title">{icono} {titulo}</span>
-            <span class="pill-sub">{sub}</span>
-        </div>
-        """
-
-    pills_html = '<div class="status-grid">'
-    pills_html += render_pill(
-        "Lote Principal (_ds.txt)",
-        archivo_txt is not None,
-        archivo_txt.name if archivo_txt else "",
-        "Requerido para iniciar",
-        requerido=True,
-        activo=True
-    )
-    pills_html += render_pill(
-        "Base Certificados",
-        file_cert is not None,
-        "Padrón CUD listo",
-        "Opcional (Valida edades)",
-        requerido=False,
-        activo=usa_sss
-    )
-    pills_html += render_pill(
-        "Históricos DEVOK",
-        bool(files_devok),
-        f"{len(files_devok)} archivo(s) cargado(s)",
-        "Opcional (Duplicados/Hist.)",
-        requerido=False,
-        activo=usa_sss
-    )
-    pills_html += render_pill(
-        "Libros IVA AFIP",
-        bool(files_iva),
-        f"{len(files_iva)} libro(s) cargado(s)",
-        "Requerido para cruce AFIP",
-        requerido=True,
-        activo=usa_afip
-    )
-    pills_html += render_pill(
-        "Valores Nomenclador",
-        file_val is not None,
-        "Matriz de topes lista",
-        "Requerido para subsidios",
-        requerido=True,
-        activo=usa_sub
-    )
-    pills_html += render_pill(
-        "Padrón Afiliados",
-        file_afil is not None,
-        "Nombres y convenios listos",
-        "Opcional (Enriquece reporte)",
-        requerido=False,
-        activo=usa_sub
-    )
-    pills_html += '</div>'
-    st.markdown("**🚦 Semáforo de Insumos para el Modo Seleccionado**")
-    st.markdown(pills_html, unsafe_allow_html=True)
+archivo_txt = st.file_uploader(
+    "📄 Seleccione o arrastre aquí el archivo TXT principal de prestaciones (_ds.txt)",
+    type=["txt"],
+    help="Archivo separado por pipes (|) con las 19 columnas reglamentarias de SSSalud. Para cargar bases adicionales (Certificados, DEVOK, IVA, Nomenclador o Afiliados), abra el panel lateral izquierdo (❯)."
+)
 
 
 # =============================================================================
@@ -935,12 +808,13 @@ if 'resultado_auditoria' in st.session_state:
     output_files = res.get('output_files', {})
     logs = res.get('logs', [])
 
-    st.markdown("""
-    <div class="step-header" style="margin-top: 0.5rem;">
-        <span class="step-number">3</span>
-        <h3 class="step-title">Tablero de Resultados y Centro de Descargas</h3>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div class="step-header" style="margin-top: 0.5rem;">'
+        '<span class="step-number">3</span>'
+        '<h3 class="step-title">Tablero de Resultados y Centro de Descargas</h3>'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
     st.success(
         f"🎉 **¡Auditoría finalizada con éxito!** — Lote `{res['archivo_nombre']}` · "
@@ -953,13 +827,14 @@ if 'resultado_auditoria' in st.session_state:
     k1, k2, k3, k4 = st.columns(4)
 
     with k1:
-        st.markdown(f"""
-        <div class="kpi-card">
-            <div class="kpi-label">📄 Lote Procesado</div>
-            <div class="kpi-value">{res.get('total_registros', 0):,} reg.</div>
-            <div class="kpi-delta">👥 {res.get('cuils_unicos', 0):,} beneficiarios · {formato_moneda(res.get('importe_total_lote', 0))}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="kpi-card">'
+            f'<div class="kpi-label">📄 Lote Procesado</div>'
+            f'<div class="kpi-value">{res.get("total_registros", 0):,} reg.</div>'
+            f'<div class="kpi-delta">👥 {res.get("cuils_unicos", 0):,} beneficiarios · {formato_moneda(res.get("importe_total_lote", 0))}</div>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
 
     with k2:
         if res.get('sss_ejecutado'):
@@ -968,21 +843,23 @@ if 'resultado_auditoria' in st.session_state:
             tot_c = max(1, ok_c + err_c)
             tasa_ok = (ok_c / tot_c) * 100
             color_cls = "kpi-success" if err_c == 0 else "kpi-warning"
-            st.markdown(f"""
-            <div class="kpi-card {color_cls}">
-                <div class="kpi-label">🏥 Control SSSalud</div>
-                <div class="kpi-value">{tasa_ok:.1f}% OK</div>
-                <div class="kpi-delta">✅ {ok_c:,} aprobados · ❌ {err_c:,} rechazados</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="kpi-card {color_cls}">'
+                f'<div class="kpi-label">🏥 Control SSSalud</div>'
+                f'<div class="kpi-value">{tasa_ok:.1f}% OK</div>'
+                f'<div class="kpi-delta">✅ {ok_c:,} aprobados · ❌ {err_c:,} rechazados</div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
         else:
-            st.markdown("""
-            <div class="kpi-card">
-                <div class="kpi-label">🏥 Control SSSalud</div>
-                <div class="kpi-value">No ejecutado</div>
-                <div class="kpi-delta">Omitido según modo seleccionado</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                '<div class="kpi-card">'
+                '<div class="kpi-label">🏥 Control SSSalud</div>'
+                '<div class="kpi-value">No ejecutado</div>'
+                '<div class="kpi-delta">Omitido según modo seleccionado</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
 
     with k3:
         if res.get('afip_ejecutado'):
@@ -991,21 +868,23 @@ if 'resultado_auditoria' in st.session_state:
             a_tot = max(1, a_ok + a_err)
             tasa_afip = (a_ok / a_tot) * 100
             color_afip = "kpi-success" if a_err == 0 else "kpi-danger"
-            st.markdown(f"""
-            <div class="kpi-card {color_afip}">
-                <div class="kpi-label">🧾 Cruce Fiscal AFIP</div>
-                <div class="kpi-value">{tasa_afip:.1f}% Validado</div>
-                <div class="kpi-delta">✅ {a_ok:,} validados · ⚠️ {a_err:,} observados</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="kpi-card {color_afip}">'
+                f'<div class="kpi-label">🧾 Cruce Fiscal AFIP</div>'
+                f'<div class="kpi-value">{tasa_afip:.1f}% Validado</div>'
+                f'<div class="kpi-delta">✅ {a_ok:,} validados · ⚠️ {a_err:,} observados</div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
         else:
-            st.markdown("""
-            <div class="kpi-card">
-                <div class="kpi-label">🧾 Cruce Fiscal AFIP</div>
-                <div class="kpi-value">Sin cruce</div>
-                <div class="kpi-delta">Omitido o sin Libros IVA cargados</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                '<div class="kpi-card">'
+                '<div class="kpi-label">🧾 Cruce Fiscal AFIP</div>'
+                '<div class="kpi-value">Sin cruce</div>'
+                '<div class="kpi-delta">Omitido o sin Libros IVA cargados</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
 
     with k4:
         if res.get('sub_ejecutado'):
@@ -1013,21 +892,23 @@ if 'resultado_auditoria' in st.session_state:
             sub = res.get('sub_subsidiado', 0.0)
             dif = res.get('sub_diferencia', 0.0)
             pct_cob = (sub / sol * 100) if sol > 0 else 0.0
-            st.markdown(f"""
-            <div class="kpi-card kpi-purple">
-                <div class="kpi-label">💰 Subsidio Proyectado</div>
-                <div class="kpi-value">{formato_moneda(sub)}</div>
-                <div class="kpi-delta">Cobertura: {pct_cob:.1f}% · Dif. Tope: {formato_moneda(dif)}</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="kpi-card kpi-purple">'
+                f'<div class="kpi-label">💰 Subsidio Proyectado</div>'
+                f'<div class="kpi-value">{formato_moneda(sub)}</div>'
+                f'<div class="kpi-delta">Cobertura: {pct_cob:.1f}% · Dif. Tope: {formato_moneda(dif)}</div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
         else:
-            st.markdown("""
-            <div class="kpi-card">
-                <div class="kpi-label">💰 Subsidio Proyectado</div>
-                <div class="kpi-value">Sin cálculo</div>
-                <div class="kpi-delta">Omitido o sin Nomenclador cargado</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                '<div class="kpi-card">'
+                '<div class="kpi-label">💰 Subsidio Proyectado</div>'
+                '<div class="kpi-value">Sin cálculo</div>'
+                '<div class="kpi-delta">Omitido o sin Nomenclador cargado</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
 
     st.markdown("<div style='margin-bottom: 1rem;'></div>", unsafe_allow_html=True)
 
