@@ -63,30 +63,45 @@ MESES_ES = {
 }
 
 # =============================================================================
-# ESTILOS VISUALES (DISEÑO SOBRIO Y ORGÁNICO)
+# ESTILOS VISUALES (DISEÑO SOBRIO Y PALETA INSTITUCIONAL)
 # =============================================================================
 st.markdown("""
 <style>
+    :root {
+        --inst-primary: #1e4e79;
+        --inst-accent: #3882b8;
+        --inst-accent-light: #7db4dc;
+        --inst-surface: rgba(30, 58, 95, 0.16);
+        --inst-border: rgba(96, 150, 196, 0.24);
+    }
+
     .block-container {
         padding-top: 3.75rem;
         padding-bottom: 3rem;
         max-width: 1280px;
     }
 
-    /* Encabezado sobrio de estilo editorial/institucional */
+    /* Barra lateral con sutil tinte pizarra institucional */
+    section[data-testid="stSidebar"] {
+        border-right: 1px solid var(--inst-border);
+    }
+
+    /* Encabezado sobrio con acento azul institucional */
     .app-header {
-        padding-top: 0.5rem;
-        border-bottom: 1px solid rgba(128, 128, 128, 0.25);
-        padding-bottom: 1.25rem;
-        margin-bottom: 1.75rem;
+        background: linear-gradient(90deg, rgba(30, 78, 121, 0.22) 0%, rgba(15, 23, 42, 0.04) 100%);
+        border: 1px solid var(--inst-border);
+        border-left: 4px solid var(--inst-accent);
+        border-radius: 6px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.85rem;
     }
     .app-overline {
-        font-size: 0.75rem;
+        font-size: 0.74rem;
         font-weight: 600;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.09em;
         text-transform: uppercase;
-        opacity: 0.72;
-        margin-bottom: 0.4rem;
+        color: var(--inst-accent-light);
+        margin-bottom: 0.35rem;
     }
     .app-title {
         font-size: 1.65rem;
@@ -96,42 +111,57 @@ st.markdown("""
     }
     .app-subtitle {
         font-size: 0.92rem;
-        opacity: 0.75;
+        opacity: 0.8;
         margin: 0;
         line-height: 1.45;
     }
 
-    /* Encabezados de sección discretos */
+    /* Encabezados de sección con indicador lateral sobrio */
     .section-heading {
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
-        opacity: 0.65;
+        letter-spacing: 0.07em;
+        color: var(--inst-accent-light);
         margin-top: 0.5rem;
-        margin-bottom: 0.85rem;
-        padding-bottom: 0.35rem;
-        border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+        margin-bottom: 0.95rem;
+        padding: 0.2rem 0 0.35rem 0.65rem;
+        border-left: 3px solid var(--inst-accent);
+        border-bottom: 1px solid rgba(96, 150, 196, 0.16);
+    }
+
+    /* Zona de carga de archivos con borde institucional sutil */
+    section[data-testid="stFileUploaderDropzone"] {
+        border: 1px dashed rgba(96, 150, 196, 0.38);
+        background: rgba(30, 58, 95, 0.07);
+        border-radius: 6px;
+    }
+    section[data-testid="stFileUploaderDropzone"]:hover {
+        border-color: var(--inst-accent-light);
+        background: rgba(30, 58, 95, 0.13);
     }
 
     /* Tarjetas de indicadores (KPIs) */
     .kpi-card {
-        background: rgba(128, 128, 128, 0.03);
-        border: 1px solid rgba(128, 128, 128, 0.18);
-        border-top: 2px solid rgba(128, 128, 128, 0.4);
+        background: linear-gradient(180deg, rgba(30, 58, 95, 0.14) 0%, rgba(15, 23, 42, 0.06) 100%);
+        border: 1px solid rgba(96, 150, 196, 0.2);
+        border-top: 3px solid var(--inst-accent);
         border-radius: 6px;
-        padding: 0.95rem 1.1rem;
+        padding: 0.95rem 1.15rem;
         height: 100%;
     }
-    .kpi-card.kpi-ok { border-top-color: #16a34a; }
-    .kpi-card.kpi-warn { border-top-color: #d97706; }
-    .kpi-card.kpi-err { border-top-color: #dc2626; }
-    .kpi-card.kpi-info { border-top-color: #2563eb; }
+    .kpi-card.kpi-ok   { border-top-color: #2e856e; }
+    .kpi-card.kpi-warn { border-top-color: #b87d2b; }
+    .kpi-card.kpi-err  { border-top-color: #b94a48; }
+    .kpi-card.kpi-info { border-top-color: #3882b8; }
 
     .kpi-label {
-        font-size: 0.76rem;
-        font-weight: 500;
-        opacity: 0.68;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--inst-accent-light);
+        opacity: 0.9;
         margin-bottom: 0.3rem;
     }
     .kpi-value {
@@ -143,16 +173,32 @@ st.markdown("""
     }
     .kpi-delta {
         font-size: 0.78rem;
-        opacity: 0.75;
+        opacity: 0.78;
         font-variant-numeric: tabular-nums;
     }
 
-    /* Botón principal sobrio */
-    div.stButton > button[kind="primary"] {
+    /* Botones principales y de descarga en azul petróleo institucional */
+    div.stButton > button[kind="primary"],
+    div.stDownloadButton > button[kind="primary"] {
+        background-color: #1e4e79;
+        border: 1px solid #2b669a;
+        color: #ffffff;
         border-radius: 6px;
         font-weight: 600;
         padding: 0.55rem 1.1rem;
         font-size: 0.92rem;
+        transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+    div.stButton > button[kind="primary"]:hover,
+    div.stDownloadButton > button[kind="primary"]:hover {
+        background-color: #255f91;
+        border-color: #3882b8;
+        color: #ffffff;
+    }
+
+    /* Pestañas con acento azul institucional */
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: var(--inst-accent-light) !important;
     }
 </style>
 """, unsafe_allow_html=True)
