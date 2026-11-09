@@ -12,8 +12,7 @@ import zipfile
 # CONFIGURACIÓN DE PÁGINA Y CONSTANTES DE NEGOCIO
 # =============================================================================
 st.set_page_config(
-    page_title="Auditoría Preventiva SSSalud | Mecanismo de Integración",
-    page_icon="🛡️",
+    page_title="Auditoría Preventiva SSSalud",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -64,140 +63,102 @@ MESES_ES = {
 }
 
 # =============================================================================
-# ESTILOS VISUALES (CSS PERSONALIZADO)
+# ESTILOS VISUALES (DISEÑO SOBRIO Y ORGÁNICO)
 # =============================================================================
 st.markdown("""
 <style>
-    /* Tipografía y espaciado general */
     .block-container {
-        padding-top: 1.5rem;
+        padding-top: 2rem;
         padding-bottom: 3rem;
-        max-width: 1400px;
+        max-width: 1280px;
     }
 
-    /* Banner Hero Principal */
-    .hero-banner {
-        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #0284c7 100%);
-        color: #ffffff;
-        padding: 1.75rem 2rem;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
-        margin-bottom: 1.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.12);
+    /* Encabezado sobrio de estilo editorial/institucional */
+    .app-header {
+        border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.75rem;
     }
-    .hero-badge {
-        display: inline-block;
-        background: rgba(56, 189, 248, 0.2);
-        color: #bae6fd;
-        border: 1px solid rgba(56, 189, 248, 0.4);
-        font-size: 0.75rem;
+    .app-overline {
+        font-size: 0.72rem;
         font-weight: 600;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
-        padding: 0.25rem 0.75rem;
-        border-radius: 999px;
-        margin-bottom: 0.6rem;
+        opacity: 0.6;
+        margin-bottom: 0.35rem;
     }
-    .hero-title {
-        font-size: 1.85rem;
-        font-weight: 800;
+    .app-title {
+        font-size: 1.65rem;
+        font-weight: 700;
         margin: 0 0 0.35rem 0;
-        letter-spacing: -0.02em;
-        color: #ffffff;
+        letter-spacing: -0.015em;
     }
-    .hero-subtitle {
-        font-size: 0.98rem;
-        color: #e2e8f0;
+    .app-subtitle {
+        font-size: 0.92rem;
+        opacity: 0.75;
         margin: 0;
-        opacity: 0.92;
-        line-height: 1.5;
+        line-height: 1.45;
     }
 
-    /* Tarjetas de Sección y Pasos */
-    .section-card {
-        background: rgba(128, 128, 128, 0.04);
-        border: 1px solid rgba(128, 128, 128, 0.18);
-        border-radius: 14px;
-        padding: 1.25rem 1.5rem;
-        margin-bottom: 1.25rem;
-    }
-    .step-header {
-        display: flex;
-        align-items: center;
-        gap: 0.65rem;
-        margin-bottom: 0.75rem;
-    }
-    .step-number {
-        background: linear-gradient(135deg, #2563eb, #0284c7);
-        color: white;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 0.85rem;
-        flex-shrink: 0;
-    }
-    .step-title {
-        font-size: 1.15rem;
-        font-weight: 700;
-        margin: 0;
+    /* Encabezados de sección discretos */
+    .section-heading {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        opacity: 0.65;
+        margin-top: 0.5rem;
+        margin-bottom: 0.85rem;
+        padding-bottom: 0.35rem;
+        border-bottom: 1px solid rgba(128, 128, 128, 0.15);
     }
 
-    /* Tarjetas de KPI de Resultados */
+    /* Tarjetas de indicadores (KPIs) */
     .kpi-card {
-        background: rgba(128, 128, 128, 0.05);
-        border: 1px solid rgba(128, 128, 128, 0.2);
-        border-left: 4px solid #0284c7;
-        border-radius: 12px;
-        padding: 1rem 1.15rem;
+        background: rgba(128, 128, 128, 0.03);
+        border: 1px solid rgba(128, 128, 128, 0.18);
+        border-top: 2px solid rgba(128, 128, 128, 0.4);
+        border-radius: 6px;
+        padding: 0.95rem 1.1rem;
         height: 100%;
     }
-    .kpi-card.kpi-success { border-left-color: #10b981; }
-    .kpi-card.kpi-danger  { border-left-color: #ef4444; }
-    .kpi-card.kpi-warning { border-left-color: #f59e0b; }
-    .kpi-card.kpi-purple  { border-left-color: #8b5cf6; }
+    .kpi-card.kpi-ok { border-top-color: #16a34a; }
+    .kpi-card.kpi-warn { border-top-color: #d97706; }
+    .kpi-card.kpi-err { border-top-color: #dc2626; }
+    .kpi-card.kpi-info { border-top-color: #2563eb; }
 
     .kpi-label {
-        font-size: 0.78rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        opacity: 0.75;
-        font-weight: 600;
-        margin-bottom: 0.25rem;
+        font-size: 0.76rem;
+        font-weight: 500;
+        opacity: 0.68;
+        margin-bottom: 0.3rem;
     }
     .kpi-value {
-        font-size: 1.55rem;
-        font-weight: 800;
+        font-size: 1.4rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
         line-height: 1.2;
-        margin-bottom: 0.2rem;
+        margin-bottom: 0.25rem;
     }
     .kpi-delta {
-        font-size: 0.8rem;
-        opacity: 0.85;
+        font-size: 0.78rem;
+        opacity: 0.75;
+        font-variant-numeric: tabular-nums;
     }
 
-    /* Botón primario más destacado */
+    /* Botón principal sobrio */
     div.stButton > button[kind="primary"] {
-        border-radius: 10px;
-        font-weight: 700;
-        padding: 0.65rem 1.25rem;
-        font-size: 1rem;
-        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
-        transition: all 0.2s ease;
-    }
-    div.stButton > button[kind="primary"]:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45);
+        border-radius: 6px;
+        font-weight: 600;
+        padding: 0.55rem 1.1rem;
+        font-size: 0.92rem;
     }
 </style>
 """, unsafe_allow_html=True)
 
 
 # =============================================================================
-# FUNCIONES AUXILIARES DE FORMATO Y UI
+# FUNCIONES AUXILIARES
 # =============================================================================
 def formato_moneda(valor: float) -> str:
     """Formatea un número al estilo moneda argentina ($ 1.234.567,89)."""
@@ -215,7 +176,7 @@ def formatear_periodo_legible(periodo: str) -> str:
         mes = periodo[4:6]
         if mes in MESES_ES:
             return f"{MESES_ES[mes]} {anio}"
-    return "Formato inválido (Use YYYYMM)"
+    return "Formato inválido (use YYYYMM)"
 
 
 def desglosar_errores(series_errores: pd.Series, catalogo: dict, sep: str = '-') -> pd.DataFrame:
@@ -242,144 +203,135 @@ def desglosar_errores(series_errores: pd.Series, catalogo: dict, sep: str = '-')
 # BARRA LATERAL - BASES DE DATOS E HISTÓRICOS (CRUCES)
 # =============================================================================
 with st.sidebar:
-    st.markdown("## 🗂️ Centro de Bases de Datos")
-    st.caption("Despliegue las secciones que necesite para cargar padrones, históricos y tablas de cruce.")
+    st.markdown("### Bases de referencia")
+    st.caption("Despliegue las secciones que necesite para adjuntar padrones, históricos y tablas de cruce.")
 
-    with st.expander("🏥 1. Control Médico SSSalud", expanded=False):
+    with st.expander("1. Control SSSalud", expanded=False):
         file_cert = st.file_uploader(
-            "🪪 Base Certificados (Excel)",
+            "Base Certificados (Excel)",
             type=["xlsx"],
             help="Padrón de certificados CUD con columna 'Cuil' y 'Edad' (encabezado en fila 5)."
         )
         files_devok = st.file_uploader(
-            "📜 Históricos DEVOK (CSV/TXT)",
+            "Históricos DEVOK (CSV/TXT)",
             type=["csv", "txt"],
             accept_multiple_files=True,
             help="Archivos DEVOK de períodos anteriores para detectar duplicados (-411) y validar apoyos/transporte (-408, -415)."
         )
 
-    with st.expander("🧾 2. Control Fiscal AFIP", expanded=False):
+    with st.expander("2. Control AFIP", expanded=False):
         files_iva = st.file_uploader(
-            "📑 Libros IVA AFIP (Excel/CSV)",
+            "Libros IVA AFIP (Excel/CSV)",
             type=["xlsx", "csv"],
             accept_multiple_files=True,
             help="Exportaciones de Mis Comprobantes / Libro IVA Digital para validar existencia (100), fecha (101) e importe (110)."
         )
 
-    with st.expander("💰 3. Subsidios y Padrón", expanded=False):
+    with st.expander("3. Subsidios y Padrón", expanded=False):
         file_val = st.file_uploader(
-            "📊 Valores Nomenclador (Excel)",
+            "Valores Nomenclador (Excel)",
             type=["xlsx"],
             help="Matriz de valores vigentes por código de práctica y período (YYYYMM)."
         )
         file_afil = st.file_uploader(
-            "👥 Base Afiliados (Excel)",
+            "Base Afiliados (Excel)",
             type=["xlsx"],
             help="Padrón de afiliados con 'Cuil', 'Nombre' y 'Convenio' para enriquecer el reporte de diferencias."
         )
 
     st.markdown("---")
-    with st.expander("📖 Guía de Códigos de Rechazo", expanded=False):
-        st.markdown("**🏥 Códigos SSSalud (`DS.DEVERR`)**")
+    with st.expander("Guía de códigos de rechazo", expanded=False):
+        st.markdown("**Códigos SSSalud (`DS.DEVERR`)**")
         for cod, desc in CATALOGO_ERRORES_SSS.items():
             st.markdown(f"- **`-{cod}`**: {desc}")
         st.markdown("---")
-        st.markdown("**🧾 Códigos AFIP (`DS_WS.DEVERR`)**")
+        st.markdown("**Códigos AFIP (`DS_WS.DEVERR`)**")
         for cod, desc in CATALOGO_ERRORES_AFIP.items():
             st.markdown(f"- **`{cod}-`**: {desc}")
 
 
 # =============================================================================
-# ENCABEZADO PRINCIPAL (HERO BANNER)
+# ENCABEZADO PRINCIPAL
 # =============================================================================
-st.markdown("""
-<div class="hero-banner">
-    <div class="hero-badge">Mecanismo de Integración</div>
-    <h1 class="hero-title">🏥 Sistema de Auditoría FTP Preventiva SSSalud</h1>
-    <p class="hero-subtitle">
-        Validación integral pre-presentación: detecta inconsistencias,
-        verifique comprobantes contra Libros IVA y proyecte topes de reintegro en segundos.
-    </p>
-</div>
-""", unsafe_allow_html=True)
-
-
-# =============================================================================
-# PASO 1: PARÁMETROS DE EJECUCIÓN Y ARCHIVO DE ENTRADA
-# =============================================================================
-st.markdown("""
-<div class="step-header">
-    <span class="step-number">1</span>
-    <h3 class="step-title">Parámetros Institucionales y Modo de Auditoría</h3>
-</div>
-""", unsafe_allow_html=True)
-
-with st.container():
-    col1, col2, col3, col4 = st.columns([1.1, 1.2, 1.1, 1.8])
-
-    with col1:
-        rnos_ingresado = st.text_input(
-            "🏛️ RNOS Institucional",
-            value="999999",
-            help="Número de Registro Nacional de Obras Sociales"
-        )
-    with col2:
-        cuit_os_ingresado = st.text_input(
-            "🆔 CUIT (Propio)",
-            value="30000000000",
-            help="CUIT institucional utilizado para el armado de líneas de subsidio"
-        )
-    with col3:
-        hoy = datetime.now()
-        mes_def = hoy.month - 1 if hoy.month > 1 else 12
-        anio_def = hoy.year if hoy.month > 1 else hoy.year - 1
-        periodo_defecto = f"{anio_def}{mes_def:02d}"
-
-        periodo_pres = st.text_input(
-            "📅 Período (YYYYMM)",
-            value=periodo_defecto,
-            help="Período de presentación en formato de 6 dígitos (ej. 202610)"
-        )
-        st.caption(f"📌 **{formatear_periodo_legible(periodo_pres)}**")
-
-    with col4:
-        modo = st.selectbox(
-            "🎯 Alcance del Control:",
-            (
-                "PROCESO COMPLETO (Todo lo anterior)",
-                "Control SSSalud (DEV.ERR)",
-                "Control AFIP (DS_WS.DEVERR)",
-                "Cálculo Subsidios (DS.SUBSIDIO + Reporte)"
-            ),
-            help="Elija si desea correr los 3 módulos en simultáneo o un módulo específico."
-        )
-        descripciones_modo = {
-            "PROCESO COMPLETO (Todo lo anterior)": "Ejecuta Control Médico + Cruce AFIP + Proyección de Subsidios.",
-            "Control SSSalud (DEV.ERR)": "Genera archivos DEVOK y DEVERR según reglas de negocio SSSalud.",
-            "Control AFIP (DS_WS.DEVERR)": "Cruza facturas del lote contra los Libros IVA Digitales cargados.",
-            "Cálculo Subsidios (DS.SUBSIDIO + Reporte)": "Calcula topes según Nomenclador y genera DS.SUBSIDIO + Reporte."
-        }
-        st.caption(f"ℹ️ {descripciones_modo.get(modo, '')}")
-
-# =============================================================================
-# PASO 2: CARGA DEL ARCHIVO PRINCIPAL DE PRESTACIONES
-# =============================================================================
-st.markdown("""
-<div class="step-header" style="margin-top: 0.75rem;">
-    <span class="step-number">2</span>
-    <h3 class="step-title">Archivo Principal de Prestaciones (_ds.txt)</h3>
-</div>
-""", unsafe_allow_html=True)
-
-archivo_txt = st.file_uploader(
-    "📄 Seleccione o arrastre aquí el archivo TXT principal de prestaciones (_ds.txt)",
-    type=["txt"],
-    help="Archivo separado por pipes (|) con las 19 columnas reglamentarias de SSSalud. Para cargar bases adicionales (Certificados, DEVOK, IVA, Nomenclador o Afiliados), abra el panel lateral izquierdo (❯)."
+st.markdown(
+    '<div class="app-header">'
+    '<div class="app-overline">Mecanismo de Integración · Ley 24.901</div>'
+    '<h1 class="app-title">Sistema de Auditoría FTP Preventiva SSSalud</h1>'
+    '<p class="app-subtitle">'
+    'Control previo de lotes de prestaciones, validación de comprobantes contra Libros IVA '
+    'y proyección de topes de reintegro.'
+    '</p>'
+    '</div>',
+    unsafe_allow_html=True
 )
 
 
 # =============================================================================
-# VISTA PREVIA RÁPIDA DEL LOTE CARGADO
+# SECCIÓN 1: PARÁMETROS DE EJECUCIÓN
+# =============================================================================
+st.markdown('<div class="section-heading">Parámetros de ejecución</div>', unsafe_allow_html=True)
+
+col1, col2, col3, col4 = st.columns([1.1, 1.2, 1.1, 1.8])
+
+with col1:
+    rnos_ingresado = st.text_input(
+        "RNOS Institucional",
+        value="999999",
+        help="Número de Registro Nacional de Obras Sociales"
+    )
+with col2:
+    cuit_os_ingresado = st.text_input(
+        "CUIT (Propio)",
+        value="30000000000",
+        help="CUIT institucional utilizado para el armado de líneas de subsidio"
+    )
+with col3:
+    hoy = datetime.now()
+    mes_def = hoy.month - 1 if hoy.month > 1 else 12
+    anio_def = hoy.year if hoy.month > 1 else hoy.year - 1
+    periodo_defecto = f"{anio_def}{mes_def:02d}"
+
+    periodo_pres = st.text_input(
+        "Período (YYYYMM)",
+        value=periodo_defecto,
+        help="Período de presentación en formato de 6 dígitos (ej. 202610)"
+    )
+    st.caption(formatear_periodo_legible(periodo_pres))
+
+with col4:
+    modo = st.selectbox(
+        "Alcance del control",
+        (
+            "PROCESO COMPLETO (Todo lo anterior)",
+            "Control SSSalud (DEV.ERR)",
+            "Control AFIP (DS_WS.DEVERR)",
+            "Cálculo Subsidios (DS.SUBSIDIO + Reporte)"
+        ),
+        help="Seleccione si desea ejecutar los 3 controles simultáneamente o un módulo puntual."
+    )
+    descripciones_modo = {
+        "PROCESO COMPLETO (Todo lo anterior)": "Ejecuta Control SSSalud, cruce AFIP y proyección de subsidios.",
+        "Control SSSalud (DEV.ERR)": "Genera archivos DEVOK y DEVERR según reglas de validación de SSSalud.",
+        "Control AFIP (DS_WS.DEVERR)": "Cruza los comprobantes del lote contra los Libros IVA cargados.",
+        "Cálculo Subsidios (DS.SUBSIDIO + Reporte)": "Calcula topes según nomenclador y genera DS.SUBSIDIO y reporte de diferencias."
+    }
+    st.caption(descripciones_modo.get(modo, ''))
+
+
+# =============================================================================
+# SECCIÓN 2: ARCHIVO DE PRESTACIONES
+# =============================================================================
+st.markdown('<div class="section-heading" style="margin-top: 1.25rem;">Archivo de prestaciones</div>', unsafe_allow_html=True)
+
+archivo_txt = st.file_uploader(
+    "Seleccione o arrastre el archivo TXT principal de prestaciones (_ds.txt)",
+    type=["txt"],
+    help="Archivo separado por pipes (|) con las 19 columnas reglamentarias. Las bases de cruce opcionales se cargan desde el panel lateral izquierdo."
+)
+
+
+# =============================================================================
+# VISTA PREVIA DEL LOTE CARGADO
 # =============================================================================
 if archivo_txt is not None:
     try:
@@ -393,20 +345,20 @@ if archivo_txt is not None:
         periodos_lote = ", ".join(sorted(df_preview['Periodo_Prestacion'].dropna().unique())[:5])
 
         with st.expander(
-            f"🔎 Vista Previa del Lote Cargado: {archivo_txt.name} — {len(df_preview):,} registros | Total Solicitado: {formato_moneda(imp_prev)}",
+            f"Vista previa del lote: {archivo_txt.name} ({len(df_preview):,} registros · Total solicitado: {formato_moneda(imp_prev)})",
             expanded=False
         ):
             pcol1, pcol2, pcol3, pcol4 = st.columns(4)
-            pcol1.metric("Registros en Lote", f"{len(df_preview):,}")
+            pcol1.metric("Registros", f"{len(df_preview):,}")
             pcol2.metric("Beneficiarios (CUIL)", f"{cuils_unicos:,}")
             pcol3.metric("Prestadores (CUIT)", f"{prest_unicos:,}")
-            pcol4.metric("Importe Total Solicitado", formato_moneda(imp_prev))
-            st.caption(f"Períodos de prestación detectados en el archivo: **{periodos_lote}**")
+            pcol4.metric("Total solicitado", formato_moneda(imp_prev))
+            st.caption(f"Períodos detectados en el archivo: {periodos_lote}")
             st.dataframe(df_preview.head(25), use_container_width=True, hide_index=True)
     except Exception as e:
-        st.warning(f"⚠️ No se pudo generar la vista previa del archivo TXT: {e}")
+        st.warning(f"No se pudo generar la vista previa del archivo TXT: {e}")
 
-st.markdown("---")
+st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
 
 
 # =============================================================================
@@ -415,19 +367,20 @@ st.markdown("---")
 if archivo_txt is not None:
     periodo_valido = len(periodo_pres) == 6 and periodo_pres.isdigit()
     if not periodo_valido:
-        st.error("❌ El período de presentación debe tener exactamente 6 dígitos numéricos (formato YYYYMM).")
+        st.error("El período de presentación debe tener exactamente 6 dígitos numéricos (formato YYYYMM).")
     else:
-        col_btn, col_info = st.columns([1.2, 2.8])
+        col_btn, col_info = st.columns([1.1, 2.9])
         with col_btn:
             iniciar_auditoria = st.button(
-                "🚀 INICIAR PROCESO DE AUDITORÍA",
+                "Ejecutar auditoría",
                 type="primary",
                 use_container_width=True
             )
         with col_info:
-            st.info(
-                f"Listo para auditar **{archivo_txt.name}** bajo el modo **{modo}** "
-                f"para el período **{periodo_pres}** ({formatear_periodo_legible(periodo_pres)})."
+            st.caption(
+                f"Archivo seleccionado: **{archivo_txt.name}** · "
+                f"Modo: **{modo}** · "
+                f"Período: **{periodo_pres}** ({formatear_periodo_legible(periodo_pres)})"
             )
 
         if iniciar_auditoria:
@@ -447,12 +400,11 @@ if archivo_txt is not None:
             def log_msg(msg):
                 logs.append(msg)
 
-            with st.spinner("Ejecutando validaciones médicas, cruces fiscales y cálculo de subsidios..."):
+            with st.spinner("Procesando validaciones y cruces..."):
                 try:
-                    # Asegurar puntero al inicio en re-ejecuciones
                     archivo_txt.seek(0)
                     df = pd.read_csv(archivo_txt, sep='|', names=COLUMNAS, dtype=str, encoding='latin1', header=None)
-                    log_msg(f"✅ Registros cargados desde TXT: {len(df)}")
+                    log_msg(f"Registros cargados desde TXT: {len(df)}")
 
                     # Conversiones Comunes
                     df['Importe_Num'] = pd.to_numeric(df['Importe_Solicitado'], errors='coerce') / 100.0
@@ -466,8 +418,8 @@ if archivo_txt is not None:
                     # ---------------------------------------------------------
                     # 1. CONTROL SSSALUD
                     # ---------------------------------------------------------
-                    if modo in ["Control SSSalud (Lógica Médica)", "PROCESO COMPLETO (Todo lo anterior)"]:
-                        log_msg(">>> [1/3] Ejecutando Control SSSalud...")
+                    if modo in ["Control SSSalud (DEV.ERR)", "Control SSSalud (Lógica Médica)", "PROCESO COMPLETO (Todo lo anterior)"]:
+                        log_msg("[1/3] Ejecutando Control SSSalud...")
                         resumen_ejecucion['sss_ejecutado'] = True
 
                         # Padrón Certificados
@@ -479,7 +431,7 @@ if archivo_txt is not None:
                                 df_pad['Edad'] = pd.to_numeric(df_pad['Edad'], errors='coerce').fillna(0).astype(int)
                                 df = df.merge(df_pad[['Cuil', 'Edad']], left_on='CUIL', right_on='Cuil', how='left')
                             except Exception as e:
-                                log_msg(f"⚠️ Error leyendo padrón de certificados: {e}")
+                                log_msg(f"Advertencia leyendo padrón de certificados: {e}")
 
                         # Históricos DEVOK
                         set_duplicados = set()
@@ -586,7 +538,7 @@ if archivo_txt is not None:
                             buf_ok = io.StringIO()
                             df_ok[COLUMNAS].to_csv(buf_ok, sep='|', index=False, header=False, encoding='latin1')
                             output_files[name_ok] = buf_ok.getvalue()
-                            log_msg(f"   -> Generado OK: {name_ok} ({len(df_ok)} registros)")
+                            log_msg(f"  -> Generado OK: {name_ok} ({len(df_ok)} registros)")
 
                         df_err = df[df['Codigo_Rechazo'] != ''].copy()
                         if not df_err.empty:
@@ -594,7 +546,7 @@ if archivo_txt is not None:
                             buf_err = io.StringIO()
                             df_err[COLUMNAS + ['Codigo_Rechazo']].to_csv(buf_err, sep='|', index=False, header=False, encoding='latin1')
                             output_files[name_err] = buf_err.getvalue()
-                            log_msg(f"   -> Generado ERR: {name_err} ({len(df_err)} registros)")
+                            log_msg(f"  -> Generado ERR: {name_err} ({len(df_err)} registros)")
 
                         resumen_ejecucion['sss_ok_count'] = len(df_ok)
                         resumen_ejecucion['sss_err_count'] = len(df_err)
@@ -604,8 +556,8 @@ if archivo_txt is not None:
                     # ---------------------------------------------------------
                     # 2. CONTROL AFIP
                     # ---------------------------------------------------------
-                    if modo in ["Control AFIP (Cruce c/Libros IVA)", "PROCESO COMPLETO (Todo lo anterior)"]:
-                        log_msg(">>> [2/3] Ejecutando Control AFIP...")
+                    if modo in ["Control AFIP (DS_WS.DEVERR)", "Control AFIP (Cruce c/Libros IVA)", "PROCESO COMPLETO (Todo lo anterior)"]:
+                        log_msg("[2/3] Ejecutando Control AFIP...")
                         MAPEO_FACTURAS = {'1': '1', '2': '4', '3': '6', '5': '11', '6': '15', '7': '51', '8': '54'}
 
                         if files_iva:
@@ -626,7 +578,7 @@ if archivo_txt is not None:
                                     d.columns = d.columns.str.strip()
                                     dfs_iva.append(d)
                                 except Exception as e:
-                                    log_msg(f"⚠️ Error leyendo libro IVA {f.name}: {e}")
+                                    log_msg(f"Advertencia leyendo libro IVA {f.name}: {e}")
 
                             if dfs_iva:
                                 resumen_ejecucion['afip_ejecutado'] = True
@@ -666,7 +618,7 @@ if archivo_txt is not None:
                                     buf_aerr = io.StringIO()
                                     df_afip_err[COLUMNAS + ['Error_AFIP']].to_csv(buf_aerr, sep='|', index=False, header=False, encoding='latin1')
                                     output_files[name_err] = buf_aerr.getvalue()
-                                    log_msg(f"   -> Generado AFIP ERR: {name_err} ({len(df_afip_err)} registros)")
+                                    log_msg(f"  -> Generado AFIP ERR: {name_err} ({len(df_afip_err)} registros)")
 
                                 df_afip_ok = df_merged[df_merged['Error_AFIP'] == ''].copy()
                                 if not df_afip_ok.empty:
@@ -674,7 +626,7 @@ if archivo_txt is not None:
                                     buf_aok = io.StringIO()
                                     df_afip_ok[COLUMNAS].to_csv(buf_aok, sep='|', index=False, header=False, encoding='latin1')
                                     output_files[name_ok] = buf_aok.getvalue()
-                                    log_msg(f"   -> Generado AFIP OK: {name_ok} ({len(df_afip_ok)} registros)")
+                                    log_msg(f"  -> Generado AFIP OK: {name_ok} ({len(df_afip_ok)} registros)")
 
                                 resumen_ejecucion['afip_ok_count'] = len(df_afip_ok)
                                 resumen_ejecucion['afip_err_count'] = len(df_afip_err)
@@ -685,13 +637,13 @@ if archivo_txt is not None:
                                 resumen_ejecucion['df_afip_err'] = df_afip_err[cols_vista_afip].astype(str).copy() if not df_afip_err.empty else pd.DataFrame()
                                 resumen_ejecucion['df_afip_desglose'] = desglosar_errores(df_afip_err['Error_AFIP'], CATALOGO_ERRORES_AFIP, sep='-') if not df_afip_err.empty else pd.DataFrame()
                         else:
-                            log_msg("⚠️ No se cargaron libros IVA. Se omite control AFIP.")
+                            log_msg("Nota: No se cargaron libros IVA. Se omite control AFIP.")
 
                     # ---------------------------------------------------------
                     # 3. CÁLCULO SUBSIDIOS
                     # ---------------------------------------------------------
-                    if modo in ["Cálculo Subsidios (Económico)", "PROCESO COMPLETO (Todo lo anterior)"]:
-                        log_msg(">>> [3/3] Ejecutando Cálculo de Subsidios...")
+                    if modo in ["Cálculo Subsidios (DS.SUBSIDIO + Reporte)", "Cálculo Subsidios (Económico)", "PROCESO COMPLETO (Todo lo anterior)"]:
+                        log_msg("[3/3] Ejecutando Cálculo de Subsidios...")
                         if file_val is not None:
                             try:
                                 file_val.seek(0)
@@ -745,7 +697,7 @@ if archivo_txt is not None:
                                 buf_sub = io.StringIO()
                                 df_grouped['Linea'].to_csv(buf_sub, index=False, header=False, quoting=3, escapechar=None)
                                 output_files[name_sub] = buf_sub.getvalue()
-                                log_msg(f"   -> Subsidio generado: {name_sub} ({len(df_grouped)} líneas)")
+                                log_msg(f"  -> Subsidio generado: {name_sub} ({len(df_grouped)} líneas)")
 
                                 # Padrón Afiliados merge
                                 if file_afil is not None:
@@ -777,7 +729,7 @@ if archivo_txt is not None:
                                 buf_rep = io.StringIO()
                                 df_rep.to_csv(buf_rep, index=False, sep=';', float_format='%.2f', encoding='utf-8-sig')
                                 output_files[name_rep] = buf_rep.getvalue()
-                                log_msg(f"   -> Reporte Detallado: {name_rep}")
+                                log_msg(f"  -> Reporte detallado: {name_rep}")
 
                                 resumen_ejecucion['sub_ejecutado'] = True
                                 resumen_ejecucion['sub_solicitado'] = float(df_rep['Importe Solicitado'].sum())
@@ -786,52 +738,46 @@ if archivo_txt is not None:
                                 resumen_ejecucion['df_rep'] = df_rep
 
                             except Exception as e:
-                                log_msg(f"⚠️ Error procesando subsidios/valores: {e}")
+                                log_msg(f"Advertencia procesando subsidios/valores: {e}")
                         else:
-                            log_msg("⚠️ Falta cargar la base de valores nomenclador para el cálculo de subsidios.")
+                            log_msg("Nota: Falta cargar la base de valores nomenclador para el cálculo de subsidios.")
 
                     resumen_ejecucion['logs'] = logs
                     resumen_ejecucion['output_files'] = output_files
                     st.session_state['resultado_auditoria'] = resumen_ejecucion
 
                 except Exception as e:
-                    st.error(f"❌ Error crítico en el proceso: {e}")
+                    st.error(f"Error en el procesamiento: {e}")
 else:
-    st.info("👆 **Para comenzar:** Indique sus datos y cargue el archivo principal de prestaciones (`_ds.txt`), opcionalmente puede añadir las bases de datos en el panel izquierdo para profundizar el control.")
+    st.caption("Indique los parámetros de la presentación y cargue el archivo principal (`_ds.txt`). Si desea cruzar contra padrones o Libros IVA, utilice el panel lateral izquierdo.")
 
 
 # =============================================================================
-# PANEL DE RESULTADOS INTERACTIVO (PERSISTENTE EN SESSION_STATE)
+# PANEL DE RESULTADOS (PERSISTENTE EN SESSION_STATE)
 # =============================================================================
 if 'resultado_auditoria' in st.session_state:
     res = st.session_state['resultado_auditoria']
     output_files = res.get('output_files', {})
     logs = res.get('logs', [])
 
-    st.markdown(
-        '<div class="step-header" style="margin-top: 0.5rem;">'
-        '<span class="step-number">3</span>'
-        '<h3 class="step-title">Tablero de Resultados y Centro de Descargas</h3>'
-        '</div>',
-        unsafe_allow_html=True
-    )
-
-    st.success(
-        f"🎉 **¡Auditoría finalizada con éxito!** — Lote `{res['archivo_nombre']}` · "
-        f"Período `{res['periodo']}` · Ejecutado el {res['timestamp']}"
+    st.markdown('<div class="section-heading" style="margin-top: 2rem;">Resultados del procesamiento</div>', unsafe_allow_html=True)
+    st.caption(
+        f"Lote procesado: **{res['archivo_nombre']}** · "
+        f"Período: **{res['periodo']}** · "
+        f"Fecha de ejecución: {res['timestamp']}"
     )
 
     # -------------------------------------------------------------------------
-    # TARJETAS KPI EJECUTIVAS
+    # TARJETAS DE RESUMEN (KPIs)
     # -------------------------------------------------------------------------
     k1, k2, k3, k4 = st.columns(4)
 
     with k1:
         st.markdown(
             f'<div class="kpi-card">'
-            f'<div class="kpi-label">📄 Lote Procesado</div>'
+            f'<div class="kpi-label">Lote procesado</div>'
             f'<div class="kpi-value">{res.get("total_registros", 0):,} reg.</div>'
-            f'<div class="kpi-delta">👥 {res.get("cuils_unicos", 0):,} beneficiarios · {formato_moneda(res.get("importe_total_lote", 0))}</div>'
+            f'<div class="kpi-delta">{res.get("cuils_unicos", 0):,} beneficiarios · {formato_moneda(res.get("importe_total_lote", 0))}</div>'
             f'</div>',
             unsafe_allow_html=True
         )
@@ -842,21 +788,21 @@ if 'resultado_auditoria' in st.session_state:
             err_c = res.get('sss_err_count', 0)
             tot_c = max(1, ok_c + err_c)
             tasa_ok = (ok_c / tot_c) * 100
-            color_cls = "kpi-success" if err_c == 0 else "kpi-warning"
+            color_cls = "kpi-ok" if err_c == 0 else "kpi-warn"
             st.markdown(
                 f'<div class="kpi-card {color_cls}">'
-                f'<div class="kpi-label">🏥 Control SSSalud</div>'
-                f'<div class="kpi-value">{tasa_ok:.1f}% OK</div>'
-                f'<div class="kpi-delta">✅ {ok_c:,} aprobados · ❌ {err_c:,} rechazados</div>'
+                f'<div class="kpi-label">Control SSSalud</div>'
+                f'<div class="kpi-value">{tasa_ok:.1f}% aprobado</div>'
+                f'<div class="kpi-delta">{ok_c:,} aprobados · {err_c:,} observados</div>'
                 f'</div>',
                 unsafe_allow_html=True
             )
         else:
             st.markdown(
                 '<div class="kpi-card">'
-                '<div class="kpi-label">🏥 Control SSSalud</div>'
+                '<div class="kpi-label">Control SSSalud</div>'
                 '<div class="kpi-value">No ejecutado</div>'
-                '<div class="kpi-delta">Omitido según modo seleccionado</div>'
+                '<div class="kpi-delta">No incluido en el alcance</div>'
                 '</div>',
                 unsafe_allow_html=True
             )
@@ -867,21 +813,21 @@ if 'resultado_auditoria' in st.session_state:
             a_err = res.get('afip_err_count', 0)
             a_tot = max(1, a_ok + a_err)
             tasa_afip = (a_ok / a_tot) * 100
-            color_afip = "kpi-success" if a_err == 0 else "kpi-danger"
+            color_afip = "kpi-ok" if a_err == 0 else "kpi-err"
             st.markdown(
                 f'<div class="kpi-card {color_afip}">'
-                f'<div class="kpi-label">🧾 Cruce Fiscal AFIP</div>'
-                f'<div class="kpi-value">{tasa_afip:.1f}% Validado</div>'
-                f'<div class="kpi-delta">✅ {a_ok:,} validados · ⚠️ {a_err:,} observados</div>'
+                f'<div class="kpi-label">Cruce AFIP</div>'
+                f'<div class="kpi-value">{tasa_afip:.1f}% validado</div>'
+                f'<div class="kpi-delta">{a_ok:,} validados · {a_err:,} con diferencia</div>'
                 f'</div>',
                 unsafe_allow_html=True
             )
         else:
             st.markdown(
                 '<div class="kpi-card">'
-                '<div class="kpi-label">🧾 Cruce Fiscal AFIP</div>'
+                '<div class="kpi-label">Cruce AFIP</div>'
                 '<div class="kpi-value">Sin cruce</div>'
-                '<div class="kpi-delta">Omitido o sin Libros IVA cargados</div>'
+                '<div class="kpi-delta">Omitido o sin Libros IVA</div>'
                 '</div>',
                 unsafe_allow_html=True
             )
@@ -893,19 +839,19 @@ if 'resultado_auditoria' in st.session_state:
             dif = res.get('sub_diferencia', 0.0)
             pct_cob = (sub / sol * 100) if sol > 0 else 0.0
             st.markdown(
-                f'<div class="kpi-card kpi-purple">'
-                f'<div class="kpi-label">💰 Subsidio Proyectado</div>'
+                f'<div class="kpi-card kpi-info">'
+                f'<div class="kpi-label">Subsidio proyectado</div>'
                 f'<div class="kpi-value">{formato_moneda(sub)}</div>'
-                f'<div class="kpi-delta">Cobertura: {pct_cob:.1f}% · Dif. Tope: {formato_moneda(dif)}</div>'
+                f'<div class="kpi-delta">Cobertura: {pct_cob:.1f}% · Dif. tope: {formato_moneda(dif)}</div>'
                 f'</div>',
                 unsafe_allow_html=True
             )
         else:
             st.markdown(
                 '<div class="kpi-card">'
-                '<div class="kpi-label">💰 Subsidio Proyectado</div>'
+                '<div class="kpi-label">Subsidio proyectado</div>'
                 '<div class="kpi-value">Sin cálculo</div>'
-                '<div class="kpi-delta">Omitido o sin Nomenclador cargado</div>'
+                '<div class="kpi-delta">Omitido o sin Nomenclador</div>'
                 '</div>',
                 unsafe_allow_html=True
             )
@@ -916,14 +862,14 @@ if 'resultado_auditoria' in st.session_state:
     # PESTAÑAS DE EXPLORACIÓN Y DESCARGA
     # -------------------------------------------------------------------------
     tab_descargas, tab_sss, tab_afip, tab_sub, tab_logs = st.tabs([
-        f"📥 Centro de Descargas ({len(output_files)})",
-        "🏥 Detalle SSSalud",
-        "🧾 Detalle AFIP",
-        "💰 Proyección Subsidios",
-        "📋 Registro de Logs"
+        f"Archivos generados ({len(output_files)})",
+        "Control SSSalud",
+        "Cruce AFIP",
+        "Subsidios y topes",
+        "Registro de ejecución"
     ])
 
-    # --- TAB 1: CENTRO DE DESCARGAS ---
+    # --- TAB 1: ARCHIVOS GENERADOS ---
     with tab_descargas:
         if output_files:
             zip_buffer = io.BytesIO()
@@ -931,12 +877,12 @@ if 'resultado_auditoria' in st.session_state:
                 for fname, content in output_files.items():
                     zip_file.writestr(fname, content)
 
-            col_zip, col_ind = st.columns([1.15, 1.85])
+            col_zip, col_ind = st.columns([1.1, 1.9])
             with col_zip:
-                st.markdown("#### 📦 Paquete Completo")
-                st.caption("Descargue todos los archivos generados en un único archivo comprimido listo para gestión.")
+                st.markdown("##### Paquete completo")
+                st.caption("Descarga todos los archivos de salida en un único comprimido `.zip`.")
                 st.download_button(
-                    label=f"📦 Descargar Todo (.ZIP) — {len(output_files)} archivos",
+                    label=f"Descargar paquete completo (.zip)",
                     data=zip_buffer.getvalue(),
                     file_name=f"Resultados_Auditoria_{res['periodo']}.zip",
                     mime="application/zip",
@@ -945,15 +891,14 @@ if 'resultado_auditoria' in st.session_state:
                 )
 
             with col_ind:
-                st.markdown("#### 📄 Descarga Individual por Archivo")
-                st.caption("También puede descargar cada archivo de salida de manera independiente:")
+                st.markdown("##### Descarga individual")
+                st.caption("Seleccione un archivo específico para descargarlo por separado:")
                 cols_arch = st.columns(2)
                 for idx, (fname, content) in enumerate(output_files.items()):
                     lineas_cant = len([ln for ln in content.splitlines() if ln.strip()])
-                    icono_f = "✅" if "DEVOK" in fname else ("❌" if "DEVERR" in fname else ("💰" if "SUBSIDIO" in fname else "📊"))
                     with cols_arch[idx % 2]:
                         st.download_button(
-                            label=f"{icono_f} {fname} ({lineas_cant:,} lín.)",
+                            label=f"{fname} ({lineas_cant:,} líneas)",
                             data=content.encode('latin1', errors='replace') if not fname.endswith('.csv') else content.encode('utf-8-sig'),
                             file_name=fname,
                             mime="text/plain",
@@ -961,28 +906,28 @@ if 'resultado_auditoria' in st.session_state:
                             use_container_width=True
                         )
         else:
-            st.warning("⚠️ No se generaron archivos de salida en esta ejecución.")
+            st.warning("No se generaron archivos de salida en esta ejecución.")
 
     # --- TAB 2: DETALLE SSSALUD ---
     with tab_sss:
         if not res.get('sss_ejecutado'):
-            st.info("ℹ️ El módulo **Control SSSalud** no fue seleccionado en esta ejecución.")
+            st.info("El módulo Control SSSalud no fue incluido en esta ejecución.")
         else:
             err_c = res.get('sss_err_count', 0)
             ok_c = res.get('sss_ok_count', 0)
             if err_c == 0:
-                st.success(f"✅ **¡Excelente!** Los {ok_c:,} registros superaron todas las validaciones de lógica médica de SSSalud sin rechazos.")
+                st.success(f"Sin observaciones. Los {ok_c:,} registros superaron las validaciones de SSSalud.")
             else:
-                st.warning(f"⚠️ Se detectaron **{err_c:,} registros con observaciones** sobre un total de {ok_c + err_c:,} registros evaluados.")
+                st.warning(f"Se registraron {err_c:,} filas con observaciones sobre un total de {ok_c + err_c:,} registros evaluados.")
                 col_d1, col_d2 = st.columns([1.1, 1.9])
                 with col_d1:
-                    st.markdown("##### 📊 Frecuencia por Código de Rechazo")
+                    st.markdown("##### Resumen por código de rechazo")
                     st.dataframe(res['df_sss_desglose'], use_container_width=True, hide_index=True)
                 with col_d2:
-                    st.markdown("##### 🔎 Registros Observados (`DS.DEVERR`)")
+                    st.markdown("##### Detalle de registros observados (`DS.DEVERR`)")
                     df_sss_err = res['df_sss_err']
                     filtro_cod = st.text_input(
-                        "Filtrar por CUIL, CUIT Prestador o Código de Rechazo (ej. 404, 411):",
+                        "Filtrar por CUIL, CUIT Prestador o código de rechazo (ej. 404, 411):",
                         key="filtro_sss"
                     )
                     if filtro_cod:
@@ -998,23 +943,23 @@ if 'resultado_auditoria' in st.session_state:
     # --- TAB 3: DETALLE AFIP ---
     with tab_afip:
         if not res.get('afip_ejecutado'):
-            st.info("ℹ️ El módulo **Control AFIP** no se ejecutó (verifique que el modo lo incluya y que haya cargado los Libros IVA en la barra lateral).")
+            st.info("El control AFIP no se ejecutó. Verifique que el modo seleccionado lo incluya y que se hayan cargado los Libros IVA en el panel lateral.")
         else:
             a_err = res.get('afip_err_count', 0)
             a_ok = res.get('afip_ok_count', 0)
             if a_err == 0:
-                st.success(f"✅ **¡Validación Fiscal Perfecta!** Los {a_ok:,} comprobantes coinciden exactamente en existencia, fecha e importe con los Libros IVA AFIP.")
+                st.success(f"Sin discrepancias. Los {a_ok:,} comprobantes coinciden en existencia, fecha e importe con los Libros IVA.")
             else:
-                st.warning(f"⚠️ Se encontraron **{a_err:,} comprobantes con inconsistencias fiscales** (`DS_WS.DEVERR`).")
+                st.warning(f"Se detectaron {a_err:,} comprobantes con observaciones en el cruce contra Libros IVA (`DS_WS.DEVERR`).")
                 col_a1, col_a2 = st.columns([1.1, 1.9])
                 with col_a1:
-                    st.markdown("##### 📊 Desglose de Errores AFIP")
+                    st.markdown("##### Resumen por tipo de error")
                     st.dataframe(res['df_afip_desglose'], use_container_width=True, hide_index=True)
                 with col_a2:
-                    st.markdown("##### 🔎 Comparativa TXT vs Libro IVA (`DS_WS.DEVERR`)")
+                    st.markdown("##### Comparativa TXT vs Libro IVA (`DS_WS.DEVERR`)")
                     df_afip_err = res['df_afip_err']
                     filtro_afip = st.text_input(
-                        "Filtrar por CUIT Prestador, CUIL o Código de Error (100, 101, 110):",
+                        "Filtrar por CUIT Prestador, CUIL o código de error (100, 101, 110):",
                         key="filtro_afip"
                     )
                     if filtro_afip:
@@ -1030,15 +975,15 @@ if 'resultado_auditoria' in st.session_state:
     # --- TAB 4: PROYECCIÓN SUBSIDIOS ---
     with tab_sub:
         if not res.get('sub_ejecutado'):
-            st.info("ℹ️ El módulo **Cálculo de Subsidios** no se ejecutó (verifique que el modo lo incluya y que haya cargado la Base de Valores Nomenclador).")
+            st.info("El cálculo de subsidios no se ejecutó. Verifique que el modo seleccionado lo incluya y que se haya cargado la tabla de Valores Nomenclador.")
         else:
             df_rep = res['df_rep']
             sc1, sc2, sc3 = st.columns(3)
-            sc1.metric("💵 Total Solicitado", formato_moneda(res['sub_solicitado']))
-            sc2.metric("🏦 Total Subsidiable (Tope SSS)", formato_moneda(res['sub_subsidiado']))
-            sc3.metric("📉 Diferencia a Cargo / Recorte", formato_moneda(res['sub_diferencia']))
+            sc1.metric("Total solicitado", formato_moneda(res['sub_solicitado']))
+            sc2.metric("Total subsidiable (tope SSS)", formato_moneda(res['sub_subsidiado']))
+            sc3.metric("Diferencia / recorte por tope", formato_moneda(res['sub_diferencia']))
 
-            st.markdown("##### 📊 Resumen Financiero por Convenio")
+            st.markdown("##### Resumen por convenio")
             df_conv = (
                 df_rep.groupby('Convenio', as_index=False)[['Importe Solicitado', 'Importe Subsidiado', 'Diferencia']]
                 .sum()
@@ -1056,12 +1001,12 @@ if 'resultado_auditoria' in st.session_state:
                 hide_index=True
             )
 
-            st.markdown("##### 🔎 Explorador Detallado de Diferencias por Beneficiario y Práctica")
+            st.markdown("##### Detalle por beneficiario y práctica")
             fcol1, fcol2 = st.columns([1, 2])
             with fcol1:
-                solo_con_dif = st.checkbox("Mostrar únicamente registros con Diferencia > $0", value=False)
+                solo_con_dif = st.checkbox("Mostrar solo registros con diferencia mayor a $0", value=False)
             with fcol2:
-                buscar_sub = st.text_input("Buscar por CUIL, Nombre, Convenio o Código de Práctica:", key="filtro_sub")
+                buscar_sub = st.text_input("Buscar por CUIL, nombre, convenio o código de práctica:", key="filtro_sub")
 
             df_vista_sub = df_rep.copy()
             if solo_con_dif:
@@ -1084,5 +1029,5 @@ if 'resultado_auditoria' in st.session_state:
 
     # --- TAB 5: BITÁCORA DE EJECUCIÓN (LOGS) ---
     with tab_logs:
-        st.markdown("##### 📋 Bitácora Técnica del Proceso")
-        st.text_area("Detalles paso a paso de la ejecución:", "\n".join(logs), height=260)
+        st.markdown("##### Registro técnico del proceso")
+        st.text_area("Log de salida:", "\n".join(logs), height=260)
