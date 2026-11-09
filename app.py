@@ -68,24 +68,25 @@ MESES_ES = {
 st.markdown("""
 <style>
     .block-container {
-        padding-top: 2rem;
+        padding-top: 3.75rem;
         padding-bottom: 3rem;
         max-width: 1280px;
     }
 
     /* Encabezado sobrio de estilo editorial/institucional */
     .app-header {
+        padding-top: 0.5rem;
         border-bottom: 1px solid rgba(128, 128, 128, 0.25);
         padding-bottom: 1.25rem;
         margin-bottom: 1.75rem;
     }
     .app-overline {
-        font-size: 0.72rem;
+        font-size: 0.75rem;
         font-weight: 600;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        opacity: 0.6;
-        margin-bottom: 0.35rem;
+        opacity: 0.72;
+        margin-bottom: 0.4rem;
     }
     .app-title {
         font-size: 1.65rem;
