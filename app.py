@@ -298,7 +298,7 @@ st.markdown(
         text-align: center;
     }
     .st-key-uploader_txt [data-testid="stFileUploaderDropzoneInstructions"]::after {
-        content: "Arrastre y suelte el archivo TXT aquí o haga clic para seleccionarlo.\\AFormato separado por pipes (|) con las 19 columnas reglamentarias SSSalud.";
+        content: "Arrastre y suelte el archivo TXT aquí.";
         display: block;
         white-space: pre-line;
         font-size: 0.85rem;
@@ -777,7 +777,7 @@ with st.container(border=True, key="card_params"):
 with st.container(border=True, key="card_lote"):
     st.markdown(
         f'<p class="sapi-card-title">{_svg_inline("file_text", "#1d4ed8", 18)}<span>2. Archivo de Prestaciones (_ds.txt)</span></p>'
-        '<p class="sapi-card-sub">Cargue el archivo principal de lote TXT y utilice la barra lateral izquierda para adjuntar padrones o Libros IVA.</p>',
+        '<p class="sapi-card-sub">Cargue el archivo TXT a continuación, adicionalmente puede utilizar la barra lateral izquierda para adjuntar padrones o Libros IVA.</p>',
         unsafe_allow_html=True,
     )
 
@@ -790,73 +790,31 @@ with st.container(border=True, key="card_lote"):
 
     periodo_valido = len(periodo_pres) == 6 and periodo_pres.isdigit()
 
-    # Vista previa del lote cargado
     if archivo_txt is not None:
-        try:
-            archivo_txt.seek(0)
-            df_preview = pd.read_csv(archivo_txt, sep='|', names=COLUMNAS, dtype=str, encoding='latin1', header=None)
-            archivo_txt.seek(0)
-
-            imp_prev = (pd.to_numeric(df_preview['Importe_Solicitado'], errors='coerce').fillna(0) / 100.0).sum()
-            cuils_unicos = df_preview['CUIL'].nunique()
-            prest_unicos = df_preview['CUIT_Prestador'].nunique()
-            periodos_lote = ", ".join(sorted(df_preview['Periodo_Prestacion'].dropna().unique())[:5])
-
-            with st.expander(
-                f"Vista previa del lote: {archivo_txt.name} ({len(df_preview):,} registros · Total solicitado: {formato_moneda(imp_prev)})",
-                expanded=False,
-                icon=":material/preview:"
-            ):
-                st.markdown(
-                    f"""
-                    <div class="rev-kpi-bar">
-                        <div class="rev-kpi-item">
-                            <p class="rev-kpi-label">{_svg_inline("clipboard", "#475569", 15)}<span>Registros</span></p>
-                            <p class="rev-kpi-val">{len(df_preview):,}</p>
-                        </div>
-                        <div class="rev-kpi-item">
-                            <p class="rev-kpi-label">{_svg_inline("users", "#1d4ed8", 15)}<span>Beneficiarios (CUIL)</span></p>
-                            <p class="rev-kpi-val" style="color: #1d4ed8;">{cuils_unicos:,}</p>
-                        </div>
-                        <div class="rev-kpi-item">
-                            <p class="rev-kpi-label">{_svg_inline("shield", "#475569", 15)}<span>Prestadores (CUIT)</span></p>
-                            <p class="rev-kpi-val">{prest_unicos:,}</p>
-                        </div>
-                        <div class="rev-kpi-item">
-                            <p class="rev-kpi-label">{_svg_inline("coins", "#15803d", 15)}<span>Total solicitado</span></p>
-                            <p class="rev-kpi-val" style="color: #15803d;">{formato_moneda(imp_prev)}</p>
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-                st.caption(f"Períodos detectados en el archivo: {periodos_lote}")
-                st.dataframe(df_preview.head(25), use_container_width=True, hide_index=True)
-        except Exception as e:
-            st.warning(f"No se pudo generar la vista previa del archivo TXT: {e}")
-
         if not periodo_valido:
+            st.session_state["ultimo_lote_notificado"] = None
+            iniciar_auditoria = False
             st.error("El período de presentación debe tener exactamente 6 dígitos numéricos (formato YYYYMM).")
         else:
-            col_info, col_btn = st.columns([2.2, 1.3], gap="medium")
-            with col_info:
-                st.markdown(
-                    f"""
-                    <div style="display: flex; align-items: center; gap: 0.55rem; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 0.68rem 1rem; border-radius: 10px; font-size: 0.85rem;">
-                        {_svg_inline("file_text", "#1d4ed8", 16)}
-                        <span>Lote listo: <b>{html.escape(archivo_txt.name)}</b> · Modo: <b>{html.escape(modo)}</b> · Período: <b>{html.escape(periodo_pres)}</b> ({html.escape(formatear_periodo_legible(periodo_pres))})</span>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
+            clave_lote_toast = (archivo_txt.name, archivo_txt.size, modo, periodo_pres)
+            if st.session_state.get("ultimo_lote_notificado") != clave_lote_toast:
+                st.session_state["ultimo_lote_notificado"] = clave_lote_toast
+                st.toast(
+                    f":blue[:material/description:] Lote listo: **{archivo_txt.name}** · Modo: **{modo}** · Período: **{periodo_pres}** ({formatear_periodo_legible(periodo_pres)})",
+                    duration="long",
                 )
+
+            st.markdown("<div style='margin-top: 0.45rem;'></div>", unsafe_allow_html=True)
+            _, col_btn, _ = st.columns([1.15, 1.7, 1.15])
             with col_btn:
                 iniciar_auditoria = st.button(
-                    "Ejecutar Auditoría Preventiva →",
+                    "Ejecutar auditoría",
                     type="primary",
                     icon=":material/search:",
                     use_container_width=True
                 )
     else:
+        st.session_state["ultimo_lote_notificado"] = None
         iniciar_auditoria = False
 
 
