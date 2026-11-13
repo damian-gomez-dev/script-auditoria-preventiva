@@ -247,25 +247,6 @@ st.markdown(
         margin: 0 0 0.85rem 0;
     }
 
-    /* Tira de estado de bases de referencia */
-    .sapi-bases-strip {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.65rem 0.9rem;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        margin-top: 0.65rem;
-    }
-    .sapi-bases-title {
-        font-size: 0.78rem;
-        font-weight: 700;
-        color: #475569;
-        margin-right: 0.25rem;
-    }
-
     /* Badges de estado */
     .badge-ok {
         display: inline-flex;
@@ -850,55 +831,20 @@ with st.container(border=True, key="card_params"):
         modo = st.selectbox(
             "Alcance del control",
             (
-                "PROCESO COMPLETO (Todo lo anterior)",
+                "Proceso Completo (Todo lo anterior)",
                 "Control SSSalud (DEV.ERR)",
                 "Control AFIP (DS_WS.DEVERR)",
-                "Cálculo Subsidios (DS.SUBSIDIO + Reporte)"
+                "Cálculo Subsidios (DS.SUBSIDIO)"
             ),
             help="Seleccione si desea ejecutar los 3 controles simultáneamente o un módulo puntual."
         )
         descripciones_modo = {
-            "PROCESO COMPLETO (Todo lo anterior)": "Ejecuta Control SSSalud, cruce AFIP y proyección de subsidios.",
+            "Proceso Completo (Todo lo anterior)": "Ejecuta Control SSSalud, cruce AFIP y proyección de subsidios.",
             "Control SSSalud (DEV.ERR)": "Genera archivos DEVOK y DEVERR según reglas de validación de SSSalud.",
             "Control AFIP (DS_WS.DEVERR)": "Cruza los comprobantes del lote contra los Libros IVA cargados.",
-            "Cálculo Subsidios (DS.SUBSIDIO + Reporte)": "Calcula topes según nomenclador y genera DS.SUBSIDIO y reporte de diferencias."
+            "Cálculo Subsidios (DS.SUBSIDIO)": "Calcula topes según nomenclador y genera DS.SUBSIDIO y reporte de diferencias."
         }
         st.caption(descripciones_modo.get(modo, ''))
-
-    # Resumen visual de bases cargadas en el panel lateral
-    badges_bases = []
-    if file_cert is not None:
-        badges_bases.append('<span class="badge-ok">✓ Certificados CUD</span>')
-    else:
-        badges_bases.append('<span class="badge-muted">Certificados CUD: opcional</span>')
-
-    if files_devok:
-        badges_bases.append(f'<span class="badge-ok">✓ Históricos DEVOK ({len(files_devok)})</span>')
-    else:
-        badges_bases.append('<span class="badge-muted">DEVOK históricos: opcional</span>')
-
-    if files_iva:
-        badges_bases.append(f'<span class="badge-ok">✓ Libros IVA ({len(files_iva)})</span>')
-    else:
-        badges_bases.append('<span class="badge-muted">Libros IVA AFIP: sin cargar</span>')
-
-    if file_val is not None:
-        badges_bases.append('<span class="badge-ok">✓ Nomenclador</span>')
-    else:
-        badges_bases.append('<span class="badge-muted">Nomenclador: sin cargar</span>')
-
-    if file_afil is not None:
-        badges_bases.append('<span class="badge-ok">✓ Padrón Afiliados</span>')
-    else:
-        badges_bases.append('<span class="badge-muted">Afiliados: opcional</span>')
-
-    st.markdown(
-        '<div class="sapi-bases-strip">'
-        '<span class="sapi-bases-title">Bases laterales:</span>'
-        + "".join(badges_bases)
-        + '</div>',
-        unsafe_allow_html=True,
-    )
 
 
 # =============================================================================
@@ -1098,7 +1044,7 @@ if archivo_txt is not None and periodo_valido and iniciar_auditoria:
         # ---------------------------------------------------------
         # 1. CONTROL SSSALUD
         # ---------------------------------------------------------
-        if modo in ["Control SSSalud (DEV.ERR)", "Control SSSalud (Lógica Médica)", "PROCESO COMPLETO (Todo lo anterior)"]:
+        if modo in ["Control SSSalud (DEV.ERR)", "Control SSSalud (Lógica Médica)", "Proceso Completo (Todo lo anterior)"]:
             _render_modal_progreso("Aplicando reglas médicas y cruces históricos SSSalud (DEV.ERR)...", 35)
             log_msg("[1/3] Ejecutando Control SSSalud...")
             resumen_ejecucion['sss_ejecutado'] = True
@@ -1237,7 +1183,7 @@ if archivo_txt is not None and periodo_valido and iniciar_auditoria:
         # ---------------------------------------------------------
         # 2. CONTROL AFIP
         # ---------------------------------------------------------
-        if modo in ["Control AFIP (DS_WS.DEVERR)", "Control AFIP (Cruce c/Libros IVA)", "PROCESO COMPLETO (Todo lo anterior)"]:
+        if modo in ["Control AFIP (DS_WS.DEVERR)", "Control AFIP (Cruce c/Libros IVA)", "Proceso Completo (Todo lo anterior)"]:
             _render_modal_progreso("Cruzando comprobantes contra Libros IVA AFIP/ARCA...", 65)
             log_msg("[2/3] Ejecutando Control AFIP...")
             MAPEO_FACTURAS = {'1': '1', '2': '4', '3': '6', '5': '11', '6': '15', '7': '51', '8': '54'}
@@ -1324,7 +1270,7 @@ if archivo_txt is not None and periodo_valido and iniciar_auditoria:
         # ---------------------------------------------------------
         # 3. CÁLCULO SUBSIDIOS
         # ---------------------------------------------------------
-        if modo in ["Cálculo Subsidios (DS.SUBSIDIO + Reporte)", "Cálculo Subsidios (Económico)", "PROCESO COMPLETO (Todo lo anterior)"]:
+        if modo in ["Cálculo Subsidios (DS.SUBSIDIO)", "Cálculo Subsidios (Económico)", "Proceso Completo (Todo lo anterior)"]:
             _render_modal_progreso("Calculando topes del Nomenclador y generando DS.SUBSIDIO...", 90)
             log_msg("[3/3] Ejecutando Cálculo de Subsidios...")
             if file_val is not None:
