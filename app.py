@@ -11,6 +11,8 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from nomenclador_valores import NOMENCLADOR_VALORES_NACIONALES
+
 # =============================================================================
 # CONFIGURACIÓN DE PÁGINA Y CONSTANTES DE NEGOCIO
 # =============================================================================
@@ -256,11 +258,9 @@ st.markdown(
         box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
         margin: 0 auto !important;
         cursor: pointer !important;
-        transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, height 0.2s ease, min-height 0.2s ease, padding 0.2s ease !important;
+        transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease !important;
     }
-    .st-key-card_lote:has(.st-key-btn_ejecutar_auditoria) .st-key-uploader_txt [data-testid="stFileUploaderDropzone"],
-    .st-key-uploader_txt:has([data-testid="stFileUploaderFile"]) [data-testid="stFileUploaderDropzone"],
-    .st-key-uploader_txt:has([data-testid="stFileUploaderFileName"]) [data-testid="stFileUploaderDropzone"] {
+    .st-key-card_lote:has(.st-key-btn_ejecutar_auditoria) .st-key-uploader_txt [data-testid="stFileUploaderDropzone"] {
         height: 108px !important;
         min-height: 108px !important;
         padding: 0.65rem 1.25rem !important;
@@ -269,6 +269,17 @@ st.markdown(
     .st-key-btn_ejecutar_auditoria button {
         height: 42px !important;
         min-height: 42px !important;
+    }
+    .st-key-dl_panel_zip button,
+    .st-key-dl_panel_ind button {
+        height: 44px !important;
+        min-height: 44px !important;
+    }
+    .dl-subcap {
+        font-size: 0.86rem;
+        color: #64748b;
+        margin: 0 0 0.75rem 0;
+        min-height: 1.4rem;
     }
     .st-key-uploader_txt [data-testid="stFileUploaderPagination"],
     .st-key-uploader_txt ul {
@@ -652,6 +663,13 @@ def desglosar_errores(series_errores: pd.Series, catalogo: dict, sep: str = '-')
     return pd.DataFrame(filas)
 
 
+def describir_codigos(val: str, catalogo: dict, sep: str = '-') -> str:
+    """Devuelve la descripción legible de los códigos de rechazo en una celda."""
+    partes = [p.strip() for p in str(val).split(sep) if p.strip()]
+    descripciones = [catalogo.get(cod, f"Observación / Regla ({cod})") for cod in partes]
+    return " | ".join(dict.fromkeys(descripciones))
+
+
 # =============================================================================
 # BARRA LATERAL - BASES DE DATOS E HISTÓRICOS (CRUCES)
 # =============================================================================
@@ -682,9 +700,9 @@ with st.sidebar:
 
     with st.expander("3. Subsidios y Padrón", expanded=False, icon=":material/payments:"):
         file_val = st.file_uploader(
-            "Valores Nomenclador (Excel)",
+            "Valores Nomenclador (Opcional · Excel)",
             type=["xlsx"],
-            help="Matriz de valores vigentes por código de práctica y período (YYYYMM)."
+            help="Ya incluye la base nacional vigente (202412-202610). Cargue un Excel solo si desea reemplazarla con valores actualizados."
         )
         file_afil = st.file_uploader(
             "Base Afiliados (Excel)",
@@ -732,9 +750,9 @@ st.markdown(
 # ESTADO DE SESIÓN INICIAL PARA PARÁMETROS Y FLUJO
 # =============================================================================
 if "param_rnos" not in st.session_state:
-    st.session_state["param_rnos"] = "999999"
+    st.session_state["param_rnos"] = ""
 if "param_cuit" not in st.session_state:
-    st.session_state["param_cuit"] = "30000000000"
+    st.session_state["param_cuit"] = ""
 if "param_periodo" not in st.session_state:
     _hoy = datetime.now()
     _mes_def = _hoy.month - 1 if _hoy.month > 1 else 12
@@ -793,16 +811,20 @@ if 'resultado_auditoria' not in st.session_state:
             rnos_ingresado = st.text_input(
                 "RNOS Institucional",
                 value=st.session_state["param_rnos"],
+                placeholder="Ej: 107909",
+                max_chars=6,
                 icon=":material/local_hospital:",
-                help="Número de Registro Nacional de Obras Sociales"
+                help="Número de Registro Nacional de Obras Sociales (obligatorio, hasta 6 dígitos)."
             )
             st.session_state["param_rnos"] = rnos_ingresado
         with col2:
             cuit_os_ingresado = st.text_input(
                 "CUIT (Propio)",
                 value=st.session_state["param_cuit"],
+                placeholder="Ej: 30-12345678-9",
+                max_chars=13,
                 icon=":material/account_balance:",
-                help="CUIT institucional utilizado para el armado de líneas de subsidio"
+                help="CUIT institucional obligatorio (11 dígitos) utilizado para el armado de líneas de subsidio."
             )
             st.session_state["param_cuit"] = cuit_os_ingresado
         with col3:
@@ -849,15 +871,28 @@ if 'resultado_auditoria' not in st.session_state:
             help="Archivo separado por pipes (|) con las 19 columnas reglamentarias. Las bases de cruce opcionales se cargan desde el panel lateral izquierdo."
         )
 
+        rnos_limpio = rnos_ingresado.strip()
+        rnos_valido = bool(rnos_limpio) and rnos_limpio.isdigit() and 1 <= len(rnos_limpio) <= 6
+
+        cuit_raw = cuit_os_ingresado.strip()
+        cuit_limpio = "".join(ch for ch in cuit_raw if ch.isdigit())
+        cuit_chars_ok = all(ch.isdigit() or ch in "- " for ch in cuit_raw)
+        cuit_valido = bool(cuit_raw) and cuit_chars_ok and len(cuit_limpio) == 11
+
+        periodo_pres = periodo_pres.strip()
         periodo_valido = len(periodo_pres) == 6 and periodo_pres.isdigit()
 
+        errores_params = []
+        if not rnos_valido:
+            errores_params.append("Complete el **RNOS Institucional** (1 a 6 dígitos numéricos).")
+        if not cuit_valido:
+            errores_params.append("Complete el **CUIT (Propio)** válido (11 dígitos numéricos).")
+        if not periodo_valido:
+            errores_params.append("El **Período** debe tener exactamente 6 dígitos numéricos (formato YYYYMM).")
+
         if archivo_txt is not None:
-            if not periodo_valido:
-                st.session_state["ultimo_lote_notificado"] = None
-                iniciar_auditoria = False
-                st.error("El período de presentación debe tener exactamente 6 dígitos numéricos (formato YYYYMM).")
-            else:
-                clave_lote_toast = (archivo_txt.name, archivo_txt.size, modo, periodo_pres)
+            if not errores_params:
+                clave_lote_toast = (archivo_txt.name, archivo_txt.size, modo, periodo_pres, rnos_limpio, cuit_limpio)
                 if st.session_state.get("ultimo_lote_notificado") != clave_lote_toast:
                     st.session_state["ultimo_lote_notificado"] = clave_lote_toast
                     st.toast(
@@ -865,25 +900,33 @@ if 'resultado_auditoria' not in st.session_state:
                         duration="long",
                     )
 
-                _, col_btn, _ = st.columns([1.15, 1.7, 1.15])
-                with col_btn:
-                    iniciar_auditoria = st.button(
-                        "Ejecutar auditoría",
-                        key="btn_ejecutar_auditoria",
-                        type="primary",
-                        icon=":material/search:",
-                        use_container_width=True
-                    )
+            _, col_btn, _ = st.columns([1.15, 1.7, 1.15])
+            with col_btn:
+                iniciar_auditoria = st.button(
+                    "Ejecutar auditoría",
+                    key="btn_ejecutar_auditoria",
+                    type="primary",
+                    icon=":material/search:",
+                    use_container_width=True
+                )
         else:
             st.session_state["ultimo_lote_notificado"] = None
             iniciar_auditoria = False
 else:
     archivo_txt = None
+    rnos_limpio = ""
+    cuit_limpio = ""
+    errores_params = []
     periodo_valido = False
     iniciar_auditoria = False
 
 
-if archivo_txt is not None and periodo_valido and iniciar_auditoria:
+if archivo_txt is not None and iniciar_auditoria and errores_params:
+    st.error(" · ".join(errores_params))
+    st.toast(":red[:material/error:] Complete los parámetros obligatorios (RNOS, CUIT y Período).", duration="long")
+elif archivo_txt is not None and not errores_params and iniciar_auditoria:
+    rnos_ingresado = rnos_limpio
+    cuit_os_ingresado = cuit_limpio
     logs = []
     output_files = {}
     resumen_ejecucion = {
@@ -1051,7 +1094,14 @@ if archivo_txt is not None and periodo_valido and iniciar_auditoria:
 
             resumen_ejecucion['sss_ok_count'] = len(df_ok)
             resumen_ejecucion['sss_err_count'] = len(df_err)
-            resumen_ejecucion['df_sss_err'] = df_err[COLUMNAS + ['Codigo_Rechazo']].copy() if not df_err.empty else pd.DataFrame()
+            if not df_err.empty:
+                df_sss_vista = df_err[COLUMNAS + ['Codigo_Rechazo']].copy()
+                df_sss_vista['Descripcion codigo'] = df_sss_vista['Codigo_Rechazo'].apply(
+                    lambda x: describir_codigos(x, CATALOGO_ERRORES_SSS, sep='-')
+                )
+                resumen_ejecucion['df_sss_err'] = df_sss_vista
+            else:
+                resumen_ejecucion['df_sss_err'] = pd.DataFrame()
             resumen_ejecucion['df_sss_desglose'] = desglosar_errores(df_err['Codigo_Rechazo'], CATALOGO_ERRORES_SSS, sep='-') if not df_err.empty else pd.DataFrame()
 
         # ---------------------------------------------------------
@@ -1147,103 +1197,104 @@ if archivo_txt is not None and periodo_valido and iniciar_auditoria:
         if modo in ["Cálculo Subsidios (DS.SUBSIDIO)", "Cálculo Subsidios (Económico)", "Proceso Completo (Todo lo anterior)"]:
             _render_modal_progreso("Calculando topes del Nomenclador y generando DS.SUBSIDIO...", 90)
             log_msg("[3/3] Ejecutando Cálculo de Subsidios...")
-            if file_val is not None:
-                try:
+            try:
+                if file_val is not None:
                     file_val.seek(0)
                     df_val = pd.read_excel(file_val, dtype=str, engine='openpyxl')
                     df_val.columns = df_val.columns.astype(str).str.strip()
                     df_val['Cod_Int'] = pd.to_numeric(df_val['CODIGO'], errors='coerce').fillna(0).astype(int).astype(str)
                     df_val.set_index('Cod_Int', inplace=True)
+                else:
+                    df_val = pd.DataFrame.from_dict(NOMENCLADOR_VALORES_NACIONALES, orient='index')
+                    log_msg("Utilizando tabla nacional de Valores Nomenclador integrada.")
 
-                    agg_funcs = {
-                        'Cod_OS': 'first',
-                        'Importe_Num': 'sum',
-                        'Cantidad_Num': 'sum',
-                        'Dependencia': lambda x: 'S' if 'S' in x.values else 'N',
-                        'CUIT_Prestador': 'first'
-                    }
-                    df_grouped = df.groupby(['CUIL', 'Periodo_Prestacion', 'Cod_Int']).agg(agg_funcs).reset_index()
+                agg_funcs = {
+                    'Cod_OS': 'first',
+                    'Importe_Num': 'sum',
+                    'Cantidad_Num': 'sum',
+                    'Dependencia': lambda x: 'S' if 'S' in x.values else 'N',
+                    'CUIT_Prestador': 'first'
+                }
+                df_grouped = df.groupby(['CUIL', 'Periodo_Prestacion', 'Cod_Int']).agg(agg_funcs).reset_index()
 
-                    def get_valor_tabla(cod_busqueda, periodo):
-                        if cod_busqueda in df_val.index and periodo in df_val.columns:
-                            try:
-                                return float(str(df_val.loc[cod_busqueda, periodo]).replace(',', '.'))
-                            except Exception:
-                                return 0.0
-                        return 0.0
-
-                    def calcular_grupo(row):
-                        cod = str(row['Cod_Int'])
-                        periodo = str(row['Periodo_Prestacion']).strip()
-                        solicitado = row['Importe_Num']
-                        cantidad = row['Cantidad_Num']
-                        dep = row['Dependencia']
-
-                        cod_lookup = '90' if cod == '86' else cod
-                        val_tabla = get_valor_tabla(cod_lookup, periodo)
-
-                        tope_base = val_tabla * 4 if cod in ['90', '91', '86'] else (min(cantidad, 2500) * val_tabla if cod == '96' else val_tabla)
-                        tope_final = tope_base * 1.35 if dep == 'S' else tope_base
-                        return min(solicitado, max(0.0, tope_final))
-
-                    df_grouped['Monto_Subsidiable'] = df_grouped.apply(calcular_grupo, axis=1)
-
-                    df_grouped['Str_Imp_Sol'] = df_grouped['Importe_Num'].apply(lambda x: "{:.2f}".format(x))
-                    df_grouped['Str_Imp_Sub'] = df_grouped['Monto_Subsidiable'].apply(lambda x: "{:.2f}".format(x))
-                    df_grouped['Linea'] = (
-                        cuit_os_ingresado + "|" + periodo_pres + "|" + df_grouped['Cod_OS'] + "|" +
-                        df_grouped['CUIL'] + "|" + df_grouped['Periodo_Prestacion'] + "|" +
-                        df_grouped['Str_Imp_Sol'] + "|" + df_grouped['Cod_Int'] + "|" + df_grouped['Str_Imp_Sub']
-                    )
-
-                    name_sub = f"{rnos_ingresado}-{periodo_pres}_DS.SUBSIDIO"
-                    buf_sub = io.StringIO()
-                    df_grouped['Linea'].to_csv(buf_sub, index=False, header=False, quoting=3, escapechar=None)
-                    output_files[name_sub] = buf_sub.getvalue()
-                    log_msg(f"  -> Subsidio generado: {name_sub} ({len(df_grouped)} líneas)")
-
-                    # Padrón Afiliados merge
-                    if file_afil is not None:
+                def get_valor_tabla(cod_busqueda, periodo):
+                    if cod_busqueda in df_val.index and periodo in df_val.columns:
                         try:
-                            file_afil.seek(0)
-                            df_afi = pd.read_excel(file_afil, dtype=str, engine='openpyxl')
-                            if 'Cuil' in df_afi.columns:
-                                df_afi['Cuil'] = pd.to_numeric(df_afi['Cuil'], errors='coerce').fillna(0).astype(np.int64).astype(str)
-                                df_afi = df_afi.drop_duplicates(subset=['Cuil'])
-                                df_grouped = df_grouped.merge(df_afi[['Cuil', 'Nombre', 'Convenio']], left_on='CUIL', right_on='Cuil', how='left')
-                                df = df.merge(df_afi[['Cuil', 'Convenio']], left_on='CUIL', right_on='Cuil', how='left')
+                            return float(str(df_val.loc[cod_busqueda, periodo]).replace(',', '.'))
                         except Exception:
-                            pass
+                            return 0.0
+                    return 0.0
 
-                    if 'Nombre' not in df_grouped.columns:
-                        df_grouped['Nombre'] = 'SIN NOMBRE EN PADRÓN'
-                    if 'Convenio' not in df_grouped.columns:
-                        df_grouped['Convenio'] = 'SIN CONVENIO'
-                    if 'Convenio' not in df.columns:
-                        df['Convenio'] = 'SIN CONVENIO'
-                    df_grouped.fillna({'Convenio': 'SIN CONVENIO', 'Nombre': 'SIN NOMBRE EN PADRÓN'}, inplace=True)
+                def calcular_grupo(row):
+                    cod = str(row['Cod_Int'])
+                    periodo = str(row['Periodo_Prestacion']).strip()
+                    solicitado = row['Importe_Num']
+                    cantidad = row['Cantidad_Num']
+                    dep = row['Dependencia']
 
-                    df_grouped['Diferencia'] = df_grouped['Importe_Num'] - df_grouped['Monto_Subsidiable']
-                    rep_cols = ['CUIL', 'Nombre', 'Convenio', 'Periodo_Prestacion', 'Cod_Int', 'Importe_Num', 'Monto_Subsidiable', 'Diferencia']
-                    df_rep = df_grouped[rep_cols].copy()
-                    df_rep.columns = ['CUIL', 'Nombre', 'Convenio', 'Periodo', 'Codigo', 'Importe Solicitado', 'Importe Subsidiado', 'Diferencia']
+                    cod_lookup = '90' if cod == '86' else cod
+                    val_tabla = get_valor_tabla(cod_lookup, periodo)
 
-                    name_rep = f"{rnos_ingresado}-{periodo_pres}_Control_Diferencias.csv"
-                    buf_rep = io.StringIO()
-                    df_rep.to_csv(buf_rep, index=False, sep=';', float_format='%.2f', encoding='utf-8-sig')
-                    output_files[name_rep] = buf_rep.getvalue()
-                    log_msg(f"  -> Reporte detallado: {name_rep}")
+                    tope_base = val_tabla * 4 if cod in ['90', '91', '86'] else (min(cantidad, 2500) * val_tabla if cod == '96' else val_tabla)
+                    tope_final = tope_base * 1.35 if dep == 'S' else tope_base
+                    return min(solicitado, max(0.0, tope_final))
 
-                    resumen_ejecucion['sub_ejecutado'] = True
-                    resumen_ejecucion['sub_solicitado'] = float(df_rep['Importe Solicitado'].sum())
-                    resumen_ejecucion['sub_subsidiado'] = float(df_rep['Importe Subsidiado'].sum())
-                    resumen_ejecucion['sub_diferencia'] = float(df_rep['Diferencia'].sum())
-                    resumen_ejecucion['df_rep'] = df_rep
+                df_grouped['Monto_Subsidiable'] = df_grouped.apply(calcular_grupo, axis=1)
 
-                except Exception as e:
-                    log_msg(f"Advertencia procesando subsidios/valores: {e}")
-            else:
-                log_msg("Nota: Falta cargar la base de valores nomenclador para el cálculo de subsidios.")
+                df_grouped['Str_Imp_Sol'] = df_grouped['Importe_Num'].apply(lambda x: "{:.2f}".format(x))
+                df_grouped['Str_Imp_Sub'] = df_grouped['Monto_Subsidiable'].apply(lambda x: "{:.2f}".format(x))
+                df_grouped['Linea'] = (
+                    cuit_os_ingresado + "|" + periodo_pres + "|" + df_grouped['Cod_OS'] + "|" +
+                    df_grouped['CUIL'] + "|" + df_grouped['Periodo_Prestacion'] + "|" +
+                    df_grouped['Str_Imp_Sol'] + "|" + df_grouped['Cod_Int'] + "|" + df_grouped['Str_Imp_Sub']
+                )
+
+                name_sub = f"{rnos_ingresado}-{periodo_pres}_DS.SUBSIDIO"
+                buf_sub = io.StringIO()
+                df_grouped['Linea'].to_csv(buf_sub, index=False, header=False, quoting=3, escapechar=None)
+                output_files[name_sub] = buf_sub.getvalue()
+                log_msg(f"  -> Subsidio generado: {name_sub} ({len(df_grouped)} líneas)")
+
+                # Padrón Afiliados merge
+                if file_afil is not None:
+                    try:
+                        file_afil.seek(0)
+                        df_afi = pd.read_excel(file_afil, dtype=str, engine='openpyxl')
+                        if 'Cuil' in df_afi.columns:
+                            df_afi['Cuil'] = pd.to_numeric(df_afi['Cuil'], errors='coerce').fillna(0).astype(np.int64).astype(str)
+                            df_afi = df_afi.drop_duplicates(subset=['Cuil'])
+                            df_grouped = df_grouped.merge(df_afi[['Cuil', 'Nombre', 'Convenio']], left_on='CUIL', right_on='Cuil', how='left')
+                            df = df.merge(df_afi[['Cuil', 'Convenio']], left_on='CUIL', right_on='Cuil', how='left')
+                    except Exception:
+                        pass
+
+                if 'Nombre' not in df_grouped.columns:
+                    df_grouped['Nombre'] = 'SIN NOMBRE EN PADRÓN'
+                if 'Convenio' not in df_grouped.columns:
+                    df_grouped['Convenio'] = 'SIN CONVENIO'
+                if 'Convenio' not in df.columns:
+                    df['Convenio'] = 'SIN CONVENIO'
+                df_grouped.fillna({'Convenio': 'SIN CONVENIO', 'Nombre': 'SIN NOMBRE EN PADRÓN'}, inplace=True)
+
+                df_grouped['Diferencia'] = df_grouped['Importe_Num'] - df_grouped['Monto_Subsidiable']
+                rep_cols = ['CUIL', 'Nombre', 'Convenio', 'Periodo_Prestacion', 'Cod_Int', 'Importe_Num', 'Monto_Subsidiable', 'Diferencia']
+                df_rep = df_grouped[rep_cols].copy()
+                df_rep.columns = ['CUIL', 'Nombre', 'Convenio', 'Periodo', 'Codigo', 'Importe Solicitado', 'Importe Subsidiado', 'Diferencia']
+
+                name_rep = f"{rnos_ingresado}-{periodo_pres}_Control_Diferencias.csv"
+                buf_rep = io.StringIO()
+                df_rep.to_csv(buf_rep, index=False, sep=';', float_format='%.2f', encoding='utf-8-sig')
+                output_files[name_rep] = buf_rep.getvalue()
+                log_msg(f"  -> Reporte detallado: {name_rep}")
+
+                resumen_ejecucion['sub_ejecutado'] = True
+                resumen_ejecucion['sub_solicitado'] = float(df_rep['Importe Solicitado'].sum())
+                resumen_ejecucion['sub_subsidiado'] = float(df_rep['Importe Subsidiado'].sum())
+                resumen_ejecucion['sub_diferencia'] = float(df_rep['Diferencia'].sum())
+                resumen_ejecucion['df_rep'] = df_rep
+
+            except Exception as e:
+                log_msg(f"Advertencia procesando subsidios/valores: {e}")
 
         _render_modal_progreso("Finalizando informes y preparando archivos...", 100)
         resumen_ejecucion['logs'] = logs
@@ -1280,7 +1331,6 @@ if 'resultado_auditoria' in st.session_state:
 
     res = st.session_state['resultado_auditoria']
     output_files = res.get('output_files', {})
-    logs = res.get('logs', [])
 
     with st.container(border=True, key="card_resultados"):
         col_res_title, col_res_back = st.columns([3.3, 1.0], gap="medium")
@@ -1306,7 +1356,10 @@ if 'resultado_auditoria' in st.session_state:
             f'<div class="kpi-box kpi-box-info">'
             f'<div class="kpi-box-top"><p class="kpi-box-label">Lote procesado</p>{_svg_inline("clipboard", "#1d4ed8", 18)}</div>'
             f'<p class="kpi-box-val">{res.get("total_registros", 0):,} reg.</p>'
-            f'<p class="kpi-box-delta">{res.get("cuils_unicos", 0):,} beneficiarios · {formato_moneda(res.get("importe_total_lote", 0))}</p>'
+            f'<div class="kpi-box-delta">'
+            f'<div>{res.get("cuils_unicos", 0):,} beneficiarios</div>'
+            f'<div style="font-weight: 700; color: #1e40af; white-space: nowrap;">{formato_moneda(res.get("importe_total_lote", 0))}</div>'
+            f'</div>'
             f'</div>'
         )
 
@@ -1322,7 +1375,10 @@ if 'resultado_auditoria' in st.session_state:
                 f'<div class="kpi-box {cls_sss}">'
                 f'<div class="kpi-box-top"><p class="kpi-box-label">Control SSSalud</p>{ico_sss}</div>'
                 f'<p class="kpi-box-val">{tasa_ok:.1f}% OK</p>'
-                f'<p class="kpi-box-delta">{ok_c:,} aprobados · {err_c:,} observados</p>'
+                f'<div class="kpi-box-delta">'
+                f'<div>{ok_c:,} aprobados</div>'
+                f'<div>{err_c:,} observados</div>'
+                f'</div>'
                 f'</div>'
             )
         else:
@@ -1388,12 +1444,11 @@ if 'resultado_auditoria' in st.session_state:
         # ---------------------------------------------------------------------
         # PESTAÑAS DE EXPLORACIÓN Y DESCARGA
         # ---------------------------------------------------------------------
-        tab_descargas, tab_sss, tab_afip, tab_sub, tab_logs = st.tabs([
+        tab_descargas, tab_sss, tab_afip, tab_sub = st.tabs([
             f"Archivos generados ({len(output_files)})",
             "Control SSSalud",
             "Cruce AFIP",
-            "Subsidios y topes",
-            "Registro de ejecución"
+            "Subsidios y topes"
         ])
 
         # --- TAB 1: ARCHIVOS GENERADOS ---
@@ -1404,37 +1459,39 @@ if 'resultado_auditoria' in st.session_state:
                     for fname, content in output_files.items():
                         zip_file.writestr(fname, content)
 
-                col_zip, col_ind = st.columns([1.05, 1.95], gap="medium")
+                col_zip, col_ind = st.columns([1.0, 2.0], gap="large")
                 with col_zip:
-                    st.markdown("##### Paquete completo")
-                    st.caption("Descarga todos los archivos de salida en un único comprimido `.zip`.")
-                    st.download_button(
-                        label="Descargar paquete completo (.zip)",
-                        data=zip_buffer.getvalue(),
-                        file_name=f"Resultados_Auditoria_{res['periodo']}.zip",
-                        mime="application/zip",
-                        key="btn_zip_paquete",
-                        icon=":material/folder_zip:",
-                        type="primary",
-                        use_container_width=True
-                    )
+                    with st.container(key="dl_panel_zip"):
+                        st.markdown("##### Paquete completo")
+                        st.markdown('<p class="dl-subcap">Todos los archivos juntos en formato <code>.zip</code>:</p>', unsafe_allow_html=True)
+                        st.download_button(
+                            label="Descargar paquete completo (.zip)",
+                            data=zip_buffer.getvalue(),
+                            file_name=f"Resultados_Auditoria_{res['periodo']}.zip",
+                            mime="application/zip",
+                            key="btn_zip_paquete",
+                            icon=":material/folder_zip:",
+                            type="primary",
+                            use_container_width=True
+                        )
 
                 with col_ind:
-                    st.markdown("##### Descarga individual")
-                    st.caption("Seleccione un archivo específico para descargarlo por separado:")
-                    cols_arch = st.columns(2)
-                    for idx, (fname, content) in enumerate(output_files.items()):
-                        lineas_cant = len([ln for ln in content.splitlines() if ln.strip()])
-                        with cols_arch[idx % 2]:
-                            st.download_button(
-                                label=f"{fname} ({lineas_cant:,} líneas)",
-                                data=content.encode('latin1', errors='replace') if not fname.endswith('.csv') else content.encode('utf-8-sig'),
-                                file_name=fname,
-                                mime="text/plain",
-                                key=f"dl_{fname}",
-                                icon=":material/download:",
-                                use_container_width=True
-                            )
+                    with st.container(key="dl_panel_ind"):
+                        st.markdown("##### Descarga individual")
+                        st.markdown('<p class="dl-subcap">Seleccione un archivo para descargarlo por separado:</p>', unsafe_allow_html=True)
+                        cols_arch = st.columns(2, gap="small")
+                        for idx, (fname, content) in enumerate(output_files.items()):
+                            lineas_cant = len([ln for ln in content.splitlines() if ln.strip()])
+                            with cols_arch[idx % 2]:
+                                st.download_button(
+                                    label=f"{fname} ({lineas_cant:,})",
+                                    data=content.encode('latin1', errors='replace') if not fname.endswith('.csv') else content.encode('utf-8-sig'),
+                                    file_name=fname,
+                                    mime="text/plain",
+                                    key=f"dl_{fname}",
+                                    icon=":material/download:",
+                                    use_container_width=True
+                                )
             else:
                 st.warning("No se generaron archivos de salida en esta ejecución.")
 
@@ -1449,27 +1506,31 @@ if 'resultado_auditoria' in st.session_state:
                     st.success(f"Sin observaciones. Los {ok_c:,} registros superaron las validaciones de SSSalud.")
                 else:
                     st.warning(f"Se registraron {err_c:,} filas con observaciones sobre un total de {ok_c + err_c:,} registros evaluados.")
-                    col_d1, col_d2 = st.columns([1.1, 1.9], gap="medium")
-                    with col_d1:
-                        st.markdown("##### Resumen por código de rechazo")
-                        st.dataframe(res['df_sss_desglose'], use_container_width=True, hide_index=True)
-                    with col_d2:
-                        st.markdown("##### Detalle de registros observados (`DS.DEVERR`)")
-                        df_sss_err = res['df_sss_err']
-                        filtro_cod = st.text_input(
-                            "Filtrar por CUIL, CUIT Prestador o código de rechazo (ej. 404, 411):",
-                            icon=":material/search:",
-                            key="filtro_sss"
+                    st.markdown("##### Detalle de registros observados (`DS.DEVERR`)")
+                    df_sss_err = res['df_sss_err']
+                    if 'Descripcion codigo' not in df_sss_err.columns and 'Codigo_Rechazo' in df_sss_err.columns:
+                        df_sss_err = df_sss_err.copy()
+                        df_sss_err['Descripcion codigo'] = df_sss_err['Codigo_Rechazo'].apply(
+                            lambda x: describir_codigos(x, CATALOGO_ERRORES_SSS, sep='-')
                         )
-                        if filtro_cod:
-                            mask_f = (
-                                df_sss_err['CUIL'].str.contains(filtro_cod, case=False, na=False) |
-                                df_sss_err['CUIT_Prestador'].str.contains(filtro_cod, case=False, na=False) |
-                                df_sss_err['Codigo_Rechazo'].str.contains(filtro_cod, case=False, na=False)
-                            )
-                            st.dataframe(df_sss_err[mask_f], use_container_width=True, hide_index=True)
-                        else:
-                            st.dataframe(df_sss_err, use_container_width=True, hide_index=True)
+                    filtro_cod = st.text_input(
+                        "Filtrar por CUIL, CUIT Prestador, código o descripción (ej. 404, 411):",
+                        icon=":material/search:",
+                        key="filtro_sss"
+                    )
+                    config_sss = {
+                        'Descripcion codigo': st.column_config.TextColumn("Descripcion codigo", width="large"),
+                    }
+                    if filtro_cod:
+                        mask_f = (
+                            df_sss_err['CUIL'].astype(str).str.contains(filtro_cod, case=False, na=False) |
+                            df_sss_err['CUIT_Prestador'].astype(str).str.contains(filtro_cod, case=False, na=False) |
+                            df_sss_err['Codigo_Rechazo'].astype(str).str.contains(filtro_cod, case=False, na=False) |
+                            df_sss_err['Descripcion codigo'].astype(str).str.contains(filtro_cod, case=False, na=False)
+                        )
+                        st.dataframe(df_sss_err[mask_f], column_config=config_sss, use_container_width=True, hide_index=True)
+                    else:
+                        st.dataframe(df_sss_err, column_config=config_sss, use_container_width=True, hide_index=True)
 
         # --- TAB 3: DETALLE AFIP ---
         with tab_afip:
@@ -1577,8 +1638,3 @@ if 'resultado_auditoria' in st.session_state:
                     use_container_width=True,
                     hide_index=True
                 )
-
-        # --- TAB 5: BITÁCORA DE EJECUCIÓN (LOGS) ---
-        with tab_logs:
-            st.markdown("##### Registro técnico del proceso")
-            st.text_area("Log de salida:", "\n".join(logs), height=260)
