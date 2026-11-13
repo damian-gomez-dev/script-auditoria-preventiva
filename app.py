@@ -420,44 +420,59 @@ st.markdown(
         margin: 0;
     }
 
-    /* Barra horizontal compacta de métricas (estilo Paso 3 de lector-facturas-qr) */
+    /* Barra horizontal compacta de métricas (simétrica en 3 columnas) */
     .rev-kpi-bar {
         background: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 12px;
-        padding: 0.7rem 1.15rem;
-        margin-bottom: 0.85rem;
+        padding: 0.85rem 0.5rem;
+        margin-bottom: 1rem;
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        align-items: center;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        align-items: stretch;
         box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    }
+    @media (max-width: 768px) {
+        .rev-kpi-bar {
+            grid-template-columns: 1fr;
+            gap: 0.65rem;
+        }
+        .rev-kpi-item + .rev-kpi-item {
+            border-left: none !important;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 0.65rem !important;
+        }
     }
     .rev-kpi-item {
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.2rem 1rem;
-        gap: 0.5rem;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 0.25rem 1.25rem;
+        gap: 0.35rem;
+        min-width: 0;
     }
     .rev-kpi-item + .rev-kpi-item {
         border-left: 1px solid #e2e8f0;
     }
     .rev-kpi-label {
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         font-weight: 600;
         color: #475569;
         margin: 0;
         display: inline-flex;
         align-items: center;
         gap: 0.45rem;
+        white-space: nowrap;
     }
     .rev-kpi-val {
-        font-size: 1.18rem;
+        font-size: 1.25rem;
         font-weight: 800;
-        line-height: 1.1;
+        line-height: 1.2;
         font-variant-numeric: tabular-nums;
         margin: 0;
         color: #0f172a;
+        white-space: nowrap;
     }
 
     /* Notificaciones emergentes (toast) */
@@ -1214,7 +1229,7 @@ elif archivo_txt is not None and not errores_params and iniciar_auditoria:
                     'Dependencia': lambda x: 'S' if 'S' in x.values else 'N',
                     'CUIT_Prestador': 'first'
                 }
-                df_grouped = df.groupby(['CUIL', 'Periodo_Prestacion', 'Cod_Int']).agg(agg_funcs).reset_index()
+                df_sub_src = df[df['Cod_Int'] != '97'].copy()
 
                 def get_valor_tabla(cod_busqueda, periodo):
                     if cod_busqueda in df_val.index and periodo in df_val.columns:
@@ -1238,7 +1253,14 @@ elif archivo_txt is not None and not errores_params and iniciar_auditoria:
                     tope_final = tope_base * 1.35 if dep == 'S' else tope_base
                     return min(solicitado, max(0.0, tope_final))
 
-                df_grouped['Monto_Subsidiable'] = df_grouped.apply(calcular_grupo, axis=1)
+                if df_sub_src.empty:
+                    df_grouped = pd.DataFrame(columns=[
+                        'CUIL', 'Periodo_Prestacion', 'Cod_Int', 'Cod_OS',
+                        'Importe_Num', 'Cantidad_Num', 'Dependencia', 'CUIT_Prestador', 'Monto_Subsidiable'
+                    ])
+                else:
+                    df_grouped = df_sub_src.groupby(['CUIL', 'Periodo_Prestacion', 'Cod_Int']).agg(agg_funcs).reset_index()
+                    df_grouped['Monto_Subsidiable'] = df_grouped.apply(calcular_grupo, axis=1)
 
                 df_grouped['Str_Imp_Sol'] = df_grouped['Importe_Num'].apply(lambda x: "{:.2f}".format(x))
                 df_grouped['Str_Imp_Sub'] = df_grouped['Monto_Subsidiable'].apply(lambda x: "{:.2f}".format(x))
@@ -1422,8 +1444,12 @@ if 'resultado_auditoria' in st.session_state:
             card4_html = (
                 f'<div class="kpi-box kpi-box-info">'
                 f'<div class="kpi-box-top"><p class="kpi-box-label">Subsidio proyectado</p>{_svg_inline("coins", "#1d4ed8", 18)}</div>'
-                f'<p class="kpi-box-val">{formato_moneda(sub)}</p>'
-                f'<p class="kpi-box-delta">Cobertura: {pct_cob:.1f}% · Dif. tope: {formato_moneda(dif)}</p>'
+                f'<p class="kpi-box-val">{pct_cob:.1f}% subsidiado</p>'
+                f'<div class="kpi-box-delta">'
+                f'<div style="display: flex; justify-content: space-between; gap: 0.45rem; white-space: nowrap;"><span>Solicitado:</span><span style="font-weight: 700;">{formato_moneda(sol)}</span></div>'
+                f'<div style="display: flex; justify-content: space-between; gap: 0.45rem; white-space: nowrap;"><span>Subsidiado:</span><span style="font-weight: 700; color: #15803d;">{formato_moneda(sub)}</span></div>'
+                f'<div style="display: flex; justify-content: space-between; gap: 0.45rem; white-space: nowrap;"><span>Diferencia:</span><span style="font-weight: 700; color: #b45309;">{formato_moneda(dif)}</span></div>'
+                f'</div>'
                 f'</div>'
             )
         else:
@@ -1570,20 +1596,24 @@ if 'resultado_auditoria' in st.session_state:
                 st.info("El cálculo de subsidios no se ejecutó. Verifique que el modo seleccionado lo incluya y que se haya cargado la tabla de Valores Nomenclador.")
             else:
                 df_rep = res['df_rep']
+                df_rep = df_rep[~df_rep['Codigo'].astype(str).str.strip().isin(['97', '097'])].copy()
+                tot_sol_sub = float(df_rep['Importe Solicitado'].sum()) if not df_rep.empty else 0.0
+                tot_sub_sub = float(df_rep['Importe Subsidiado'].sum()) if not df_rep.empty else 0.0
+                tot_dif_sub = float(df_rep['Diferencia'].sum()) if not df_rep.empty else 0.0
                 st.markdown(
                     f"""
                     <div class="rev-kpi-bar">
                         <div class="rev-kpi-item">
                             <p class="rev-kpi-label">{_svg_inline("clipboard", "#475569", 16)}<span>Total solicitado</span></p>
-                            <p class="rev-kpi-val">{formato_moneda(res['sub_solicitado'])}</p>
+                            <p class="rev-kpi-val">{formato_moneda(tot_sol_sub)}</p>
                         </div>
                         <div class="rev-kpi-item">
                             <p class="rev-kpi-label" style="color: #166534;">{_svg_inline("check_circle", "#16a34a", 16)}<span>Total subsidiable (tope SSS)</span></p>
-                            <p class="rev-kpi-val" style="color: #15803d;">{formato_moneda(res['sub_subsidiado'])}</p>
+                            <p class="rev-kpi-val" style="color: #15803d;">{formato_moneda(tot_sub_sub)}</p>
                         </div>
                         <div class="rev-kpi-item">
                             <p class="rev-kpi-label" style="color: #b45309;">{_svg_inline("alert_triangle", "#d97706", 16)}<span>Diferencia / recorte por tope</span></p>
-                            <p class="rev-kpi-val" style="color: #b45309;">{formato_moneda(res['sub_diferencia'])}</p>
+                            <p class="rev-kpi-val" style="color: #b45309;">{formato_moneda(tot_dif_sub)}</p>
                         </div>
                     </div>
                     """,
@@ -1609,7 +1639,7 @@ if 'resultado_auditoria' in st.session_state:
                 )
 
                 st.markdown("##### Detalle por beneficiario y práctica")
-                fcol1, fcol2 = st.columns([1, 2])
+                fcol1, fcol2 = st.columns([1.35, 1.65], gap="medium", vertical_alignment="bottom")
                 with fcol1:
                     solo_con_dif = st.checkbox("Mostrar solo registros con diferencia mayor a $0", value=False)
                 with fcol2:
