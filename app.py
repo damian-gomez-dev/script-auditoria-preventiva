@@ -247,7 +247,7 @@ st.markdown(
         justify-content: center !important;
         text-align: center !important;
         height: auto !important;
-        min-height: 155px !important;
+        min-height: 166px !important;
         padding: 1.5rem 1.5rem !important;
         gap: 0.45rem !important;
         background: #ffffff !important;
@@ -256,7 +256,24 @@ st.markdown(
         box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
         margin: 0 auto !important;
         cursor: pointer !important;
-        transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease !important;
+        transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, min-height 0.2s ease, padding 0.2s ease !important;
+    }
+    .st-key-uploader_txt:has([data-testid="stFileUploaderFile"]) [data-testid="stFileUploaderDropzone"] {
+        min-height: 54px !important;
+        padding: 0.5rem 1rem !important;
+        gap: 0.1rem !important;
+    }
+    .st-key-uploader_txt:has([data-testid="stFileUploaderFile"]) [data-testid="stFileUploaderDropzoneInstructions"]::after {
+        display: none !important;
+    }
+    .st-key-uploader_txt:has([data-testid="stFileUploaderFile"]) [data-testid="stFileUploaderDropzoneInstructions"]::before {
+        content: "Archivo _ds.txt cargado (clic o arrastre para reemplazar)";
+        font-size: 0.92rem !important;
+    }
+    .st-key-uploader_txt [data-testid="stFileUploaderPagination"],
+    .st-key-uploader_txt ul {
+        margin-top: 0.35rem !important;
+        margin-bottom: 0 !important;
     }
     .st-key-uploader_txt [data-testid="stFileUploaderDropzone"]:hover {
         border-color: #2563eb !important;
@@ -712,114 +729,30 @@ st.markdown(
 
 
 # =============================================================================
-# SECCIÓN 1: PARÁMETROS DE EJECUCIÓN (TARJETA SAPI)
+# ESTADO DE SESIÓN INICIAL PARA PARÁMETROS Y FLUJO
 # =============================================================================
-with st.container(border=True, key="card_params"):
-    st.markdown(
-        f'<p class="sapi-card-title">{_svg_inline("clipboard", "#1d4ed8", 18)}<span>1. Parámetros de Ejecución</span></p>'
-        '<p class="sapi-card-sub">Configure los identificadores institucionales, el período de presentación y el alcance de la auditoría.</p>',
-        unsafe_allow_html=True,
-    )
+if "param_rnos" not in st.session_state:
+    st.session_state["param_rnos"] = "999999"
+if "param_cuit" not in st.session_state:
+    st.session_state["param_cuit"] = "30000000000"
+if "param_periodo" not in st.session_state:
+    _hoy = datetime.now()
+    _mes_def = _hoy.month - 1 if _hoy.month > 1 else 12
+    _anio_def = _hoy.year if _hoy.month > 1 else _hoy.year - 1
+    st.session_state["param_periodo"] = f"{_anio_def}{_mes_def:02d}"
+if "param_modo" not in st.session_state:
+    st.session_state["param_modo"] = "Proceso Completo (Todo lo anterior)"
 
-    col1, col2, col3, col4 = st.columns([1.1, 1.25, 1.1, 1.85], gap="medium")
-
-    with col1:
-        rnos_ingresado = st.text_input(
-            "RNOS Institucional",
-            value="999999",
-            icon=":material/local_hospital:",
-            help="Número de Registro Nacional de Obras Sociales"
-        )
-    with col2:
-        cuit_os_ingresado = st.text_input(
-            "CUIT (Propio)",
-            value="30000000000",
-            icon=":material/account_balance:",
-            help="CUIT institucional utilizado para el armado de líneas de subsidio"
-        )
-    with col3:
-        hoy = datetime.now()
-        mes_def = hoy.month - 1 if hoy.month > 1 else 12
-        anio_def = hoy.year if hoy.month > 1 else hoy.year - 1
-        periodo_defecto = f"{anio_def}{mes_def:02d}"
-
-        periodo_pres = st.text_input(
-            "Período (YYYYMM)",
-            value=periodo_defecto,
-            icon=":material/calendar_month:",
-            help="Período de presentación en formato de 6 dígitos (ej. 202610)"
-        )
-        st.caption(formatear_periodo_legible(periodo_pres))
-
-    with col4:
-        modo = st.selectbox(
-            "Alcance del control",
-            (
-                "Proceso Completo (Todo lo anterior)",
-                "Control SSSalud (DEV.ERR)",
-                "Control AFIP (DS_WS.DEVERR)",
-                "Cálculo Subsidios (DS.SUBSIDIO)"
-            ),
-            help="Seleccione si desea ejecutar los 3 controles simultáneamente o un módulo puntual."
-        )
-        descripciones_modo = {
-            "Proceso Completo (Todo lo anterior)": "Ejecuta Control SSSalud, cruce AFIP y proyección de subsidios.",
-            "Control SSSalud (DEV.ERR)": "Genera archivos DEVOK y DEVERR según reglas de validación de SSSalud.",
-            "Control AFIP (DS_WS.DEVERR)": "Cruza los comprobantes del lote contra los Libros IVA cargados.",
-            "Cálculo Subsidios (DS.SUBSIDIO)": "Calcula topes según nomenclador y genera DS.SUBSIDIO y reporte de diferencias."
-        }
-        st.caption(descripciones_modo.get(modo, ''))
+MODOS_CONTROL = (
+    "Proceso Completo (Todo lo anterior)",
+    "Control SSSalud (DEV.ERR)",
+    "Control AFIP (DS_WS.DEVERR)",
+    "Cálculo Subsidios (DS.SUBSIDIO)"
+)
 
 
 # =============================================================================
-# SECCIÓN 2: ARCHIVO DE PRESTACIONES
-# =============================================================================
-with st.container(border=True, key="card_lote"):
-    st.markdown(
-        f'<p class="sapi-card-title">{_svg_inline("file_text", "#1d4ed8", 18)}<span>2. Archivo de Prestaciones (_ds.txt)</span></p>'
-        '<p class="sapi-card-sub">Cargue el archivo TXT a continuación, adicionalmente puede utilizar la barra lateral izquierda para adjuntar padrones o Libros IVA.</p>',
-        unsafe_allow_html=True,
-    )
-
-    archivo_txt = st.file_uploader(
-        "Seleccione o arrastre el archivo TXT principal de prestaciones (_ds.txt)",
-        type=["txt"],
-        key="uploader_txt",
-        help="Archivo separado por pipes (|) con las 19 columnas reglamentarias. Las bases de cruce opcionales se cargan desde el panel lateral izquierdo."
-    )
-
-    periodo_valido = len(periodo_pres) == 6 and periodo_pres.isdigit()
-
-    if archivo_txt is not None:
-        if not periodo_valido:
-            st.session_state["ultimo_lote_notificado"] = None
-            iniciar_auditoria = False
-            st.error("El período de presentación debe tener exactamente 6 dígitos numéricos (formato YYYYMM).")
-        else:
-            clave_lote_toast = (archivo_txt.name, archivo_txt.size, modo, periodo_pres)
-            if st.session_state.get("ultimo_lote_notificado") != clave_lote_toast:
-                st.session_state["ultimo_lote_notificado"] = clave_lote_toast
-                st.toast(
-                    f":blue[:material/description:] Lote listo: **{archivo_txt.name}** · Modo: **{modo}** · Período: **{periodo_pres}** ({formatear_periodo_legible(periodo_pres)})",
-                    duration="long",
-                )
-
-            st.markdown("<div style='margin-top: 0.45rem;'></div>", unsafe_allow_html=True)
-            _, col_btn, _ = st.columns([1.15, 1.7, 1.15])
-            with col_btn:
-                iniciar_auditoria = st.button(
-                    "Ejecutar auditoría",
-                    type="primary",
-                    icon=":material/search:",
-                    use_container_width=True
-                )
-    else:
-        st.session_state["ultimo_lote_notificado"] = None
-        iniciar_auditoria = False
-
-
-# =============================================================================
-# EJECUCIÓN DE LA AUDITORÍA (CON MODAL DE PROGRESO SAPI)
+# PANTALLA 1 y 2: PARÁMETROS Y CARGA DE ARCHIVO (OCULTA AL VER RESULTADOS)
 # =============================================================================
 modal_progreso = st.empty()
 
@@ -841,6 +774,113 @@ def _render_modal_progreso(texto: str, porc: int) -> None:
 """,
         unsafe_allow_html=True,
     )
+
+
+if 'resultado_auditoria' not in st.session_state:
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1: PARÁMETROS DE EJECUCIÓN (TARJETA SAPI)
+    # -------------------------------------------------------------------------
+    with st.container(border=True, key="card_params"):
+        st.markdown(
+            f'<p class="sapi-card-title">{_svg_inline("clipboard", "#1d4ed8", 18)}<span>1. Parámetros de Ejecución</span></p>'
+            '<p class="sapi-card-sub">Configure los identificadores institucionales, el período de presentación y el alcance de la auditoría.</p>',
+            unsafe_allow_html=True,
+        )
+
+        col1, col2, col3, col4 = st.columns([1.1, 1.25, 1.1, 1.85], gap="medium")
+
+        with col1:
+            rnos_ingresado = st.text_input(
+                "RNOS Institucional",
+                value=st.session_state["param_rnos"],
+                icon=":material/local_hospital:",
+                help="Número de Registro Nacional de Obras Sociales"
+            )
+            st.session_state["param_rnos"] = rnos_ingresado
+        with col2:
+            cuit_os_ingresado = st.text_input(
+                "CUIT (Propio)",
+                value=st.session_state["param_cuit"],
+                icon=":material/account_balance:",
+                help="CUIT institucional utilizado para el armado de líneas de subsidio"
+            )
+            st.session_state["param_cuit"] = cuit_os_ingresado
+        with col3:
+            periodo_pres = st.text_input(
+                "Período (YYYYMM)",
+                value=st.session_state["param_periodo"],
+                icon=":material/calendar_month:",
+                help="Período de presentación en formato de 6 dígitos (ej. 202610)"
+            )
+            st.session_state["param_periodo"] = periodo_pres
+            st.caption(formatear_periodo_legible(periodo_pres))
+
+        with col4:
+            idx_modo = MODOS_CONTROL.index(st.session_state["param_modo"]) if st.session_state["param_modo"] in MODOS_CONTROL else 0
+            modo = st.selectbox(
+                "Alcance del control",
+                MODOS_CONTROL,
+                index=idx_modo,
+                help="Seleccione si desea ejecutar los 3 controles simultáneamente o un módulo puntual."
+            )
+            st.session_state["param_modo"] = modo
+            descripciones_modo = {
+                "Proceso Completo (Todo lo anterior)": "Ejecuta Control SSSalud, cruce AFIP y proyección de subsidios.",
+                "Control SSSalud (DEV.ERR)": "Genera archivos DEVOK y DEVERR según reglas de validación de SSSalud.",
+                "Control AFIP (DS_WS.DEVERR)": "Cruza los comprobantes del lote contra los Libros IVA cargados.",
+                "Cálculo Subsidios (DS.SUBSIDIO)": "Calcula topes según nomenclador y genera DS.SUBSIDIO y reporte de diferencias."
+            }
+            st.caption(descripciones_modo.get(modo, ''))
+
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2: ARCHIVO DE PRESTACIONES
+    # -------------------------------------------------------------------------
+    with st.container(border=True, key="card_lote"):
+        st.markdown(
+            f'<p class="sapi-card-title">{_svg_inline("file_text", "#1d4ed8", 18)}<span>2. Archivo de Prestaciones (_ds.txt)</span></p>'
+            '<p class="sapi-card-sub">Cargue el archivo TXT a continuación, adicionalmente puede utilizar la barra lateral izquierda para adjuntar padrones o Libros IVA.</p>',
+            unsafe_allow_html=True,
+        )
+
+        archivo_txt = st.file_uploader(
+            "Seleccione o arrastre el archivo TXT principal de prestaciones (_ds.txt)",
+            type=["txt"],
+            key="uploader_txt",
+            help="Archivo separado por pipes (|) con las 19 columnas reglamentarias. Las bases de cruce opcionales se cargan desde el panel lateral izquierdo."
+        )
+
+        periodo_valido = len(periodo_pres) == 6 and periodo_pres.isdigit()
+
+        if archivo_txt is not None:
+            if not periodo_valido:
+                st.session_state["ultimo_lote_notificado"] = None
+                iniciar_auditoria = False
+                st.error("El período de presentación debe tener exactamente 6 dígitos numéricos (formato YYYYMM).")
+            else:
+                clave_lote_toast = (archivo_txt.name, archivo_txt.size, modo, periodo_pres)
+                if st.session_state.get("ultimo_lote_notificado") != clave_lote_toast:
+                    st.session_state["ultimo_lote_notificado"] = clave_lote_toast
+                    st.toast(
+                        f":blue[:material/description:] Lote listo: **{archivo_txt.name}** · Modo: **{modo}** · Período: **{periodo_pres}** ({formatear_periodo_legible(periodo_pres)})",
+                        duration="long",
+                    )
+
+                st.markdown("<div style='margin-top: 0.25rem;'></div>", unsafe_allow_html=True)
+                _, col_btn, _ = st.columns([1.15, 1.7, 1.15])
+                with col_btn:
+                    iniciar_auditoria = st.button(
+                        "Ejecutar auditoría",
+                        type="primary",
+                        icon=":material/search:",
+                        use_container_width=True
+                    )
+        else:
+            st.session_state["ultimo_lote_notificado"] = None
+            iniciar_auditoria = False
+else:
+    archivo_txt = None
+    periodo_valido = False
+    iniciar_auditoria = False
 
 
 if archivo_txt is not None and periodo_valido and iniciar_auditoria:
@@ -1209,17 +1249,13 @@ if archivo_txt is not None and periodo_valido and iniciar_auditoria:
         resumen_ejecucion['logs'] = logs
         resumen_ejecucion['output_files'] = output_files
         st.session_state['resultado_auditoria'] = resumen_ejecucion
+        st.session_state['toast_auditoria_pendiente'] = {
+            'total_registros': resumen_ejecucion['total_registros'],
+            'sss_err': resumen_ejecucion.get('sss_err_count', 0),
+            'afip_err': resumen_ejecucion.get('afip_err_count', 0),
+        }
         modal_progreso.empty()
-
-        st.toast(
-            f":green[:material/check_circle:] Auditoría completada · {resumen_ejecucion['total_registros']:,} registros evaluados",
-            duration="long"
-        )
-        if resumen_ejecucion.get('sss_err_count', 0) > 0 or resumen_ejecucion.get('afip_err_count', 0) > 0:
-            st.toast(
-                f":orange[:material/warning:] Observaciones detectadas — SSSalud: {resumen_ejecucion.get('sss_err_count', 0):,} · AFIP: {resumen_ejecucion.get('afip_err_count', 0):,}",
-                duration="long"
-            )
+        st.rerun()
 
     except Exception as e:
         modal_progreso.empty()
@@ -1227,21 +1263,40 @@ if archivo_txt is not None and periodo_valido and iniciar_auditoria:
 
 
 # =============================================================================
-# PANEL DE RESULTADOS (PERSISTENTE EN SESSION_STATE)
+# PANEL DE RESULTADOS (PASO 3 - PERSISTENTE EN SESSION_STATE)
 # =============================================================================
 if 'resultado_auditoria' in st.session_state:
+    toast_aud = st.session_state.pop('toast_auditoria_pendiente', None)
+    if toast_aud:
+        st.toast(
+            f":green[:material/check_circle:] Auditoría completada · {toast_aud['total_registros']:,} registros evaluados",
+            duration="long"
+        )
+        if toast_aud['sss_err'] > 0 or toast_aud['afip_err'] > 0:
+            st.toast(
+                f":orange[:material/warning:] Observaciones detectadas — SSSalud: {toast_aud['sss_err']:,} · AFIP: {toast_aud['afip_err']:,}",
+                duration="long"
+            )
+
     res = st.session_state['resultado_auditoria']
     output_files = res.get('output_files', {})
     logs = res.get('logs', [])
 
     with st.container(border=True, key="card_resultados"):
-        st.markdown(
-            f'<p class="sapi-card-title">{_svg_inline("check_circle", "#16a34a", 18)}<span>3. Informe de Validación y Resultados</span></p>'
-            f'<p class="sapi-card-sub">Lote procesado: <b>{html.escape(str(res["archivo_nombre"]))}</b> · '
-            f'Período: <b>{html.escape(str(res["periodo"]))}</b> · '
-            f'Ejecución: {html.escape(str(res["timestamp"]))}</p>',
-            unsafe_allow_html=True,
-        )
+        col_res_title, col_res_back = st.columns([3.3, 1.0], gap="medium")
+        with col_res_title:
+            st.markdown(
+                f'<p class="sapi-card-title">{_svg_inline("check_circle", "#16a34a", 18)}<span>3. Informe de Validación y Resultados</span></p>'
+                f'<p class="sapi-card-sub">Lote procesado: <b>{html.escape(str(res["archivo_nombre"]))}</b> · '
+                f'Período: <b>{html.escape(str(res["periodo"]))}</b> · '
+                f'Ejecución: {html.escape(str(res["timestamp"]))}</p>',
+                unsafe_allow_html=True,
+            )
+        with col_res_back:
+            if st.button("Volver atrás", key="btn_volver_atras", icon=":material/arrow_back:", use_container_width=True):
+                st.session_state.pop('resultado_auditoria', None)
+                st.session_state['ultimo_lote_notificado'] = None
+                st.rerun()
 
         # ---------------------------------------------------------------------
         # TARJETAS KPI ESTILO SAPI WEB
