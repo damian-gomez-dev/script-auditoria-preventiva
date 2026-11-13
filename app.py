@@ -148,79 +148,6 @@ st.markdown(
         gap: 0.4rem;
     }
 
-    /* Stepper visual de 3 etapas (100% ancho y tarjetas simétricas) */
-    .sapi-stepper {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 0.9rem;
-        margin-top: 0.4rem;
-        margin-bottom: 1.15rem;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    .sapi-step {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 0.95rem 1.15rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.85rem;
-        min-height: 82px;
-        height: 100%;
-        box-sizing: border-box;
-        transition: all 0.2s ease;
-    }
-    .sapi-step.active {
-        background: #eff6ff;
-        border: 2px solid #2563eb;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
-    }
-    .sapi-step.done {
-        background: #f0fdf4;
-        border: 1px solid #86efac;
-    }
-    .sapi-step-num {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 0.88rem;
-        flex-shrink: 0;
-        background: #f1f5f9;
-        color: #64748b;
-    }
-    .sapi-step.active .sapi-step-num {
-        background: #2563eb;
-        color: #ffffff;
-    }
-    .sapi-step.done .sapi-step-num {
-        background: #16a34a;
-        color: #ffffff;
-    }
-    .sapi-step-label {
-        font-weight: 700;
-        font-size: 0.92rem;
-        color: #334155;
-        margin: 0 0 0.15rem 0;
-    }
-    .sapi-step.active .sapi-step-label {
-        color: #1e40af;
-    }
-    .sapi-step.done .sapi-step-label {
-        color: #166534;
-    }
-    .sapi-step-desc {
-        font-size: 0.78rem;
-        color: #64748b;
-        margin: 0;
-        line-height: 1.3;
-    }
-
     /* Tarjetas contenedoras SAPI */
     .st-key-card_params,
     .st-key-card_lote,
@@ -393,9 +320,6 @@ st.markdown(
     @media (max-width: 980px) {
         .kpi-grid-4 {
             grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-        .sapi-stepper {
-            grid-template-columns: 1fr;
         }
     }
     .kpi-box {
@@ -865,45 +789,6 @@ with st.container(border=True, key="card_lote"):
     )
 
     periodo_valido = len(periodo_pres) == 6 and periodo_pres.isdigit()
-    tiene_resultado = 'resultado_auditoria' in st.session_state
-
-    # Stepper dinámico de 3 etapas estilo SAPI Web
-    clase_1 = "done" if (archivo_txt is not None and periodo_valido) else "active"
-    clase_2 = "done" if tiene_resultado else ("active" if (archivo_txt is not None and periodo_valido) else "")
-    clase_3 = "done" if tiene_resultado else ""
-
-    icono_1 = "✓" if clase_1 == "done" else "1"
-    icono_2 = "✓" if clase_2 == "done" else "2"
-    icono_3 = "✓" if clase_3 == "done" else "3"
-
-    st.markdown(
-        f"""
-        <div class="sapi-stepper">
-            <div class="sapi-step {clase_1}">
-                <div class="sapi-step-num">{icono_1}</div>
-                <div>
-                    <p class="sapi-step-label">1. Carga de Lote TXT</p>
-                    <p class="sapi-step-desc">Parámetros y archivo principal _ds.txt</p>
-                </div>
-            </div>
-            <div class="sapi-step {clase_2}">
-                <div class="sapi-step-num">{icono_2}</div>
-                <div>
-                    <p class="sapi-step-label">2. Validación y Cruces</p>
-                    <p class="sapi-step-desc">Reglas SSSalud, AFIP IVA y Nomenclador</p>
-                </div>
-            </div>
-            <div class="sapi-step {clase_3}">
-                <div class="sapi-step-num">{icono_3}</div>
-                <div>
-                    <p class="sapi-step-label">3. Informe y Descargas</p>
-                    <p class="sapi-step-desc">Resumen de rechazos y exportación ZIP</p>
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
 
     # Vista previa del lote cargado
     if archivo_txt is not None:
@@ -973,15 +858,6 @@ with st.container(border=True, key="card_lote"):
                 )
     else:
         iniciar_auditoria = False
-        st.markdown(
-            f"""
-            <div style="width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 0.85rem 1rem; border-radius: 12px; font-size: 0.88rem; margin-top: 0.2rem;">
-                {_svg_inline("upload", "#1d4ed8", 17)}
-                <span>Arrastre o seleccione el archivo principal <b>_ds.txt</b> para habilitar la auditoría. Para cruces con AFIP o Nomenclador, despliegue el panel lateral izquierdo.</span>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
 
 
 # =============================================================================
