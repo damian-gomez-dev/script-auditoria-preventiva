@@ -246,7 +246,7 @@ st.markdown(
         align-items: center !important;
         justify-content: center !important;
         text-align: center !important;
-        height: auto !important;
+        height: 166px !important;
         min-height: 166px !important;
         padding: 1.5rem 1.5rem !important;
         gap: 0.45rem !important;
@@ -256,23 +256,23 @@ st.markdown(
         box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
         margin: 0 auto !important;
         cursor: pointer !important;
-        transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, min-height 0.2s ease, padding 0.2s ease !important;
+        transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, height 0.2s ease, min-height 0.2s ease, padding 0.2s ease !important;
     }
-    .st-key-uploader_txt:has([data-testid="stFileUploaderFile"]) [data-testid="stFileUploaderDropzone"] {
-        min-height: 54px !important;
-        padding: 0.5rem 1rem !important;
-        gap: 0.1rem !important;
+    .st-key-card_lote:has(.st-key-btn_ejecutar_auditoria) .st-key-uploader_txt [data-testid="stFileUploaderDropzone"],
+    .st-key-uploader_txt:has([data-testid="stFileUploaderFile"]) [data-testid="stFileUploaderDropzone"],
+    .st-key-uploader_txt:has([data-testid="stFileUploaderFileName"]) [data-testid="stFileUploaderDropzone"] {
+        height: 108px !important;
+        min-height: 108px !important;
+        padding: 0.65rem 1.25rem !important;
+        gap: 0.2rem !important;
     }
-    .st-key-uploader_txt:has([data-testid="stFileUploaderFile"]) [data-testid="stFileUploaderDropzoneInstructions"]::after {
-        display: none !important;
-    }
-    .st-key-uploader_txt:has([data-testid="stFileUploaderFile"]) [data-testid="stFileUploaderDropzoneInstructions"]::before {
-        content: "Archivo _ds.txt cargado (clic o arrastre para reemplazar)";
-        font-size: 0.92rem !important;
+    .st-key-btn_ejecutar_auditoria button {
+        height: 42px !important;
+        min-height: 42px !important;
     }
     .st-key-uploader_txt [data-testid="stFileUploaderPagination"],
     .st-key-uploader_txt ul {
-        margin-top: 0.35rem !important;
+        margin-top: 0 !important;
         margin-bottom: 0 !important;
     }
     .st-key-uploader_txt [data-testid="stFileUploaderDropzone"]:hover {
@@ -281,7 +281,7 @@ st.markdown(
         box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08) !important;
     }
     .st-key-uploader_txt [data-testid="stFileUploaderDropzone"] > span,
-    .st-key-uploader_txt [data-testid="stFileUploaderDropzone"] button {
+    .st-key-uploader_txt [data-testid="stFileUploaderDropzone"] button:not([aria-label^="Remove"]) {
         display: none !important;
     }
     .st-key-uploader_txt [data-testid="stFileUploaderDropzoneInstructions"] {
@@ -865,11 +865,11 @@ if 'resultado_auditoria' not in st.session_state:
                         duration="long",
                     )
 
-                st.markdown("<div style='margin-top: 0.25rem;'></div>", unsafe_allow_html=True)
                 _, col_btn, _ = st.columns([1.15, 1.7, 1.15])
                 with col_btn:
                     iniciar_auditoria = st.button(
                         "Ejecutar auditoría",
+                        key="btn_ejecutar_auditoria",
                         type="primary",
                         icon=":material/search:",
                         use_container_width=True
