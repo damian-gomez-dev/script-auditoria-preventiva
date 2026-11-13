@@ -922,8 +922,7 @@ else:
 
 
 if archivo_txt is not None and iniciar_auditoria and errores_params:
-    st.error(" · ".join(errores_params))
-    st.toast(":red[:material/error:] Complete los parámetros obligatorios (RNOS, CUIT y Período).", duration="long")
+    st.toast(f":red[:material/error:] {' · '.join(errores_params)}", duration="long")
 elif archivo_txt is not None and not errores_params and iniciar_auditoria:
     rnos_ingresado = rnos_limpio
     cuit_os_ingresado = cuit_limpio
